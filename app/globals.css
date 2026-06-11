@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source "../components";
 
 /* =========================================================================
    Design tokens — light brand. Modern, medium energy, tech-savvy audience.
@@ -22,22 +23,14 @@
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
-:root {
-  --background: var(--color-bg);
-  --foreground: var(--color-fg);
-  --surface: var(--color-surface);
-  --border: var(--color-border);
-  --muted: var(--color-muted);
-}
-
 html {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--color-bg);
+  color: var(--color-fg);
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  color: var(--color-fg);
+  background: var(--color-bg);
   font-family: var(--font-sans);
   font-size: 15px; /* dense UI base; prose/lead uses larger sizes */
   line-height: 1.55;
@@ -60,7 +53,7 @@ body {
 .lead {
   font-size: 1.25rem; /* ~20-22px prose */
   line-height: 1.5;
-  color: var(--muted);
+  color: var(--color-muted);
 }
 
 @layer utilities {

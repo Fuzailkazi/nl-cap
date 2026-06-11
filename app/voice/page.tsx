@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { handleTranscript, spellCodeForSpeech, MOCK_SLOTS } from "@/lib/voice/scheduler";
-import { BookingCodeBadge, cardClass, cardStyle } from "@/app/components/ui";
+import { Card, Button, Input } from "@/components/ui";
+import { BookingCodeBadge } from "@/components/voice/BookingCodeBadge";
 
 // Minimal Web Speech typings (not in lib.dom for all targets).
 interface SpeechRecognitionLike {
@@ -58,7 +59,6 @@ export default function VoicePage() {
     const text = raw.trim();
     if (!text) return;
     const turn = handleTranscript(text);
-
     // Never echo/store volunteered PII: redact the caller line on the screen.
     setLog((l) => [
       ...l,
@@ -81,10 +81,7 @@ export default function VoicePage() {
     recog.lang = "en-IN";
     recog.interimResults = false;
     recog.continuous = false;
-    recog.onresult = (e) => {
-      const transcript = e.results[0]?.[0]?.transcript ?? "";
-      processCallerInput(transcript);
-    };
+    recog.onresult = (e) => processCallerInput(e.results[0]?.[0]?.transcript ?? "");
     recog.onerror = (e) => {
       setError(`Mic error: ${e.error}. Use the typed fallback below.`);
       setListening(false);
@@ -107,9 +104,8 @@ export default function VoicePage() {
       if (!res.ok) throw new Error(d.error);
       setBooking(d);
       setShowSlots(false);
-      const line = `Your call is booked for ${slot}. Your booking code is ${spellCodeForSpeech(d.code)}.`;
       setLog((l) => [...l, { who: "assistant", text: `Booked for ${slot}. Booking code: ${d.code}.` }]);
-      speak(line);
+      speak(`Your call is booked for ${slot}. Your booking code is ${spellCodeForSpeech(d.code)}.`);
     } catch (e) {
       setError((e as Error).message);
     }
@@ -118,40 +114,36 @@ export default function VoicePage() {
   return (
     <div className="mx-auto max-w-2xl space-y-4">
       <div>
-        <h1 className="text-xl font-semibold">Voice Scheduler</h1>
-        <p className="text-sm" style={{ color: "var(--muted)" }}>
+        <h1 className="h2">Voice Scheduler</h1>
+        <p className="text-sm text-muted">
           Browser voice (Web Speech) with a typed fallback. The greeting reflects this week&apos;s
           pulse theme; the booking code is read aloud and queued to the shared notes doc.
         </p>
       </div>
 
-      {error && (
-        <div className="text-sm" style={{ color: "var(--color-rejected)" }}>
-          {error}
-        </div>
-      )}
+      {error && <div className="text-sm text-rejected">{error}</div>}
 
-      <div className={cardClass} style={cardStyle}>
-        <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
+      <Card>
+        <div className="text-xs font-semibold uppercase tracking-wide text-muted">
           Greeting {topTheme && `· top theme: ${topTheme}`}
         </div>
         <p className="mt-1 text-sm">{greeting || "Loading…"}</p>
-        <button onClick={() => greeting && speak(greeting)} className="mt-2 text-xs underline" style={{ color: "var(--color-brand)" }}>
+        <Button variant="ghost" onClick={() => greeting && speak(greeting)} className="mt-2 text-xs">
           ▶ Replay greeting
-        </button>
-      </div>
+        </Button>
+      </Card>
 
       <div className="flex items-center gap-3">
-        <button
+        <Button
           onClick={startListening}
           disabled={listening || !micSupported}
-          className="rounded-full px-5 py-2 text-sm font-medium text-white disabled:opacity-50"
-          style={{ background: listening ? "var(--color-rejected)" : "var(--color-brand)" }}
+          variant={listening ? "danger" : "primary"}
+          className="rounded-full px-5"
         >
           {listening ? "● Listening…" : micSupported ? "🎤 Speak" : "🎤 Mic unavailable"}
-        </button>
-        <span className="text-xs" style={{ color: "var(--muted)" }}>
-          {micSupported ? 'Try: "I\'d like to book a call."' : "Your browser has no speech recognition — use the box below."}
+        </Button>
+        <span className="text-xs text-muted">
+          {micSupported ? 'Try: "I\'d like to book a call."' : "No speech recognition — use the box below."}
         </span>
       </div>
 
@@ -163,58 +155,51 @@ export default function VoicePage() {
           setTyped("");
         }}
       >
-        <input
-          value={typed}
-          onChange={(e) => setTyped(e.target.value)}
-          placeholder="Typed fallback — e.g. book a call"
-          className="flex-1 rounded-[var(--radius)] border px-3 py-2 text-sm outline-none"
-          style={{ borderColor: "var(--border)", background: "var(--surface)" }}
-        />
-        <button type="submit" className="rounded-[var(--radius)] px-4 py-2 text-sm font-medium" style={{ background: "var(--color-brand)", color: "var(--color-brand-fg)" }}>
-          Send
-        </button>
+        <Input value={typed} onChange={(e) => setTyped(e.target.value)} placeholder="Typed fallback — e.g. book a call" />
+        <Button type="submit">Send</Button>
       </form>
 
       {showSlots && !booking && (
-        <div className={cardClass} style={cardStyle}>
+        <Card>
           <div className="mb-2 text-sm font-medium">Pick a slot</div>
           <div className="flex flex-wrap gap-2">
             {MOCK_SLOTS.map((s) => (
-              <button key={s} onClick={() => book(s)} className="rounded-md border px-3 py-1 text-sm" style={{ borderColor: "var(--border)" }}>
+              <Button key={s} variant="secondary" size="sm" onClick={() => book(s)}>
                 {s}
-              </button>
+              </Button>
             ))}
           </div>
-        </div>
+        </Card>
       )}
 
       {booking && (
-        <div className={cardClass} style={cardStyle}>
+        <Card>
           <div className="text-sm">Booked for {booking.slot}:</div>
           <div className="mt-2">
             <BookingCodeBadge code={booking.code} />
           </div>
-          <div className="mt-2 text-xs" style={{ color: "var(--muted)" }}>
+          <div className="mt-2 text-xs text-muted">
             Queued action #{booking.actionId} (notes_doc_append) —{" "}
-            <Link href="/approvals" className="underline">see it in the Approval Centre</Link>.
+            <Link href="/approvals" className="text-brand underline">
+              see it in the Approval Centre
+            </Link>
+            .
           </div>
-        </div>
+        </Card>
       )}
 
       {log.length > 0 && (
-        <div className={cardClass} style={cardStyle}>
-          <div className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
-            Transcript
-          </div>
+        <Card>
+          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Transcript</div>
           <div className="space-y-1 text-sm">
             {log.map((e, i) => (
               <div key={i}>
-                <span style={{ color: "var(--muted)" }}>{e.who === "caller" ? "Caller" : "Assistant"}: </span>
+                <span className="text-muted">{e.who === "caller" ? "Caller" : "Assistant"}: </span>
                 {e.text}
               </div>
             ))}
           </div>
-        </div>
+        </Card>
       )}
     </div>
   );

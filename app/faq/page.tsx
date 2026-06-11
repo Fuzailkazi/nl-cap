@@ -3,7 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { FaqAnswer } from "@/lib/contracts";
-import { CitationCard, RefusalNotice, ChatBubble, cardClass, cardStyle } from "@/app/components/ui";
+import { Card, Button, Input } from "@/components/ui";
+import { CitationCard, RefusalNotice } from "@/components/shared";
+import { ChatBubble } from "@/components/faq/ChatBubble";
 
 type Msg =
   | { role: "user"; text: string }
@@ -72,24 +74,23 @@ export default function FaqPage() {
 
   return (
     <div className="mx-auto flex h-[calc(100vh-3rem)] max-w-2xl flex-col">
-      <h1 className="text-xl font-semibold">FAQ Bot</h1>
-      <p className="text-sm" style={{ color: "var(--muted)" }}>
+      <h1 className="h2">FAQ Bot</h1>
+      <p className="text-sm text-muted">
         Factual answers about HDFC schemes — ≤3 sentences, one citation, never advice.
       </p>
 
       <div className="mt-4 flex-1 space-y-3 overflow-y-auto pr-1">
         {messages.length === 0 && (
           <div className="space-y-2">
-            <div className="text-sm" style={{ color: "var(--muted)" }}>Try:</div>
+            <div className="text-sm text-muted">Try:</div>
             {SUGGESTED.map((s) => (
-              <button
+              <Card
                 key={s}
                 onClick={() => ask(s)}
-                className={`${cardClass} block w-full text-left text-sm hover:bg-black/5 dark:hover:bg-white/10`}
-                style={cardStyle}
+                className="cursor-pointer text-sm hover:bg-black/5"
               >
                 {s}
-              </button>
+              </Card>
             ))}
           </div>
         )}
@@ -107,13 +108,9 @@ export default function FaqPage() {
                   {m.answer.citationUrl && (
                     <CitationCard url={m.answer.citationUrl} title={m.answer.citationTitle} />
                   )}
-                  <button
-                    onClick={() => draftEmail(m.question, m.answer)}
-                    className="text-xs underline"
-                    style={{ color: "var(--color-brand)" }}
-                  >
+                  <Button variant="ghost" onClick={() => draftEmail(m.question, m.answer)} className="text-xs">
                     Draft follow-up email →
-                  </button>
+                  </Button>
                 </>
               ) : (
                 <RefusalNotice answer={m.answer} />
@@ -121,16 +118,15 @@ export default function FaqPage() {
             </div>
           ),
         )}
-        {busy && (
-          <div className="text-sm" style={{ color: "var(--muted)" }}>
-            Thinking…
-          </div>
-        )}
+        {busy && <div className="text-sm text-muted">Thinking…</div>}
       </div>
 
       {draftNote && (
-        <div className="mt-2 text-xs" style={{ color: "var(--muted)" }}>
-          {draftNote} <Link href="/approvals" className="underline">Open Approval Centre</Link>
+        <div className="mt-2 text-xs text-muted">
+          {draftNote}{" "}
+          <Link href="/approvals" className="text-brand underline">
+            Open Approval Centre
+          </Link>
         </div>
       )}
 
@@ -141,21 +137,10 @@ export default function FaqPage() {
           ask(input);
         }}
       >
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask about an HDFC scheme…"
-          className="flex-1 rounded-[var(--radius)] border px-3 py-2 text-sm outline-none"
-          style={{ borderColor: "var(--border)", background: "var(--surface)" }}
-        />
-        <button
-          type="submit"
-          disabled={busy}
-          className="rounded-[var(--radius)] px-4 py-2 text-sm font-medium disabled:opacity-50"
-          style={{ background: "var(--color-brand)", color: "var(--color-brand-fg)" }}
-        >
+        <Input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask about an HDFC scheme…" />
+        <Button type="submit" disabled={busy}>
           Send
-        </button>
+        </Button>
       </form>
     </div>
   );

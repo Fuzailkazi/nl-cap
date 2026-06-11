@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import type { ApprovalRow, ApprovalStatus } from "@/lib/contracts";
-import { StatusBadge, cardClass, cardStyle } from "@/app/components/ui";
+import { Card, Button } from "@/components/ui";
+import { ApprovalCard } from "@/components/approvals/ApprovalCard";
 
 const FILTERS: (ApprovalStatus | "all")[] = ["all", "pending", "approved", "rejected"];
 
@@ -53,86 +54,40 @@ export default function ApprovalsPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="text-xl font-semibold">Approval Centre</h1>
-      <p className="text-sm" style={{ color: "var(--muted)" }}>
+      <h1 className="h2">Approval Centre</h1>
+      <p className="text-sm text-muted">
         Every MCP action lands here as <em>pending</em>. Approve to execute the side effect; reject
         to discard. Nothing auto-sends.
       </p>
 
-      <div className="mt-4 flex gap-2">
+      <div className="mt-4 flex items-center gap-2">
         {FILTERS.map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className="rounded-full px-3 py-1 text-xs"
-            style={
-              filter === f
-                ? { background: "var(--color-brand)", color: "var(--color-brand-fg)" }
-                : { border: "1px solid var(--border)" }
-            }
+            className={`rounded-full px-3 py-1 text-xs ${
+              filter === f ? "bg-brand text-brand-fg" : "border border-border"
+            }`}
           >
             {f}
           </button>
         ))}
-        <button onClick={load} className="ml-auto text-xs underline" style={{ color: "var(--muted)" }}>
+        <Button variant="ghost" onClick={load} className="ml-auto text-xs text-muted">
           Refresh
-        </button>
+        </Button>
       </div>
 
-      {error && (
-        <div className="mt-3 text-sm" style={{ color: "var(--color-rejected)" }}>
-          {error}
-        </div>
-      )}
+      {error && <div className="mt-3 text-sm text-rejected">{error}</div>}
 
       <div className="mt-4 space-y-3">
-        {loading && <div className="text-sm" style={{ color: "var(--muted)" }}>Loading…</div>}
+        {loading && <div className="text-sm text-muted">Loading…</div>}
         {!loading && rows.length === 0 && (
-          <div className={cardClass} style={cardStyle}>
-            <span className="text-sm" style={{ color: "var(--muted)" }}>No actions{filter !== "all" ? ` (${filter})` : ""} yet.</span>
-          </div>
+          <Card>
+            <span className="text-sm text-muted">No actions{filter !== "all" ? ` (${filter})` : ""} yet.</span>
+          </Card>
         )}
         {rows.map((r) => (
-          <div key={r.id} className={cardClass} style={cardStyle}>
-            <div className="flex items-center justify-between gap-2">
-              <div className="font-mono text-sm">
-                #{r.id} · {r.tool}
-              </div>
-              <StatusBadge status={r.status} />
-            </div>
-            <pre
-              className="mt-2 overflow-x-auto rounded-md p-2 text-xs"
-              style={{ background: "var(--background)" }}
-            >
-              {JSON.stringify(r.payload, null, 2)}
-            </pre>
-            {r.status === "pending" ? (
-              <div className="mt-2 flex gap-2">
-                <button
-                  disabled={acting === r.id}
-                  onClick={() => decide(r.id, "approve")}
-                  className="rounded-md px-3 py-1 text-xs font-medium text-white disabled:opacity-50"
-                  style={{ background: "var(--color-approved)" }}
-                >
-                  Approve
-                </button>
-                <button
-                  disabled={acting === r.id}
-                  onClick={() => decide(r.id, "reject")}
-                  className="rounded-md px-3 py-1 text-xs font-medium text-white disabled:opacity-50"
-                  style={{ background: "var(--color-rejected)" }}
-                >
-                  Reject
-                </button>
-              </div>
-            ) : (
-              r.result != null && (
-                <div className="mt-2 text-xs" style={{ color: "var(--muted)" }}>
-                  result: {JSON.stringify(r.result)}
-                </div>
-              )
-            )}
-          </div>
+          <ApprovalCard key={r.id} row={r} acting={acting === r.id} onDecide={decide} />
         ))}
       </div>
     </div>

@@ -2,14 +2,10 @@
 
 import { useEffect, useState } from "react";
 import type { FaqAnswer, FeeExplainer } from "@/lib/contracts";
-import {
-  PulseCard,
-  FeeExplainerCard,
-  CitationCard,
-  RefusalNotice,
-  cardClass,
-  cardStyle,
-} from "@/app/components/ui";
+import { Card, Button, Input } from "@/components/ui";
+import { CitationCard, RefusalNotice } from "@/components/shared";
+import { PulseCard } from "@/components/reviews/PulseCard";
+import { FeeExplainerCard } from "@/components/reviews/FeeExplainerCard";
 
 type Pulse = { top_theme: string; body: string; word_count: number | null };
 
@@ -84,86 +80,63 @@ export default function ReviewsPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-4">
       <div>
-        <h1 className="text-xl font-semibold">Review Intelligence</h1>
-        <p className="text-sm" style={{ color: "var(--muted)" }}>
+        <h1 className="h2">Review Intelligence</h1>
+        <p className="text-sm text-muted">
           Weekly Pulse over customer reviews, and a Fee Explainer that refreshes the FAQ corpus.
         </p>
       </div>
 
-      {error && (
-        <div className="text-sm" style={{ color: "var(--color-rejected)" }}>
-          {error}
-        </div>
-      )}
+      {error && <div className="text-sm text-rejected">{error}</div>}
 
       <section className="space-y-2">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-medium">Weekly Pulse</h2>
-          <button onClick={regenPulse} disabled={busy === "pulse"} className="text-xs underline" style={{ color: "var(--color-brand)" }}>
+          <Button variant="ghost" onClick={regenPulse} disabled={busy === "pulse"} className="text-xs">
             {busy === "pulse" ? "Generating…" : "Regenerate"}
-          </button>
+          </Button>
         </div>
         {pulse ? (
           <PulseCard pulse={pulse} />
         ) : (
-          <div className={cardClass} style={cardStyle}>
-            <span className="text-sm" style={{ color: "var(--muted)" }}>
+          <Card>
+            <span className="text-sm text-muted">
               No pulse yet. Run <code>npm run reviews</code> or click Regenerate.
             </span>
-          </div>
+          </Card>
         )}
       </section>
 
       <section className="space-y-2">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-medium">Fee Explainer → corpus refresh (flow A)</h2>
-          <button
-            onClick={refreshCorpus}
-            disabled={busy === "fee"}
-            className="rounded-md px-3 py-1 text-xs font-medium text-white disabled:opacity-50"
-            style={{ background: "var(--color-brand)" }}
-          >
+          <Button size="sm" onClick={refreshCorpus} disabled={busy === "fee"}>
             {busy === "fee" ? "Refreshing…" : "Generate & refresh corpus"}
-          </button>
+          </Button>
         </div>
-        {refreshNote && (
-          <div className="text-xs" style={{ color: "var(--color-approved)" }}>
-            {refreshNote}
-          </div>
-        )}
+        {refreshNote && <div className="text-xs text-approved">{refreshNote}</div>}
         {explainer && <FeeExplainerCard explainer={explainer} />}
       </section>
 
       <section className="space-y-2">
         <h2 className="text-sm font-medium">Re-query demo — proves the explainer is now retrievable</h2>
         <div className="flex gap-2">
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            className="flex-1 rounded-[var(--radius)] border px-3 py-2 text-sm outline-none"
-            style={{ borderColor: "var(--border)", background: "var(--surface)" }}
-          />
-          <button
-            onClick={requery}
-            disabled={busy === "requery"}
-            className="rounded-[var(--radius)] px-4 py-2 text-sm font-medium disabled:opacity-50"
-            style={{ background: "var(--color-brand)", color: "var(--color-brand-fg)" }}
-          >
+          <Input value={q} onChange={(e) => setQ(e.target.value)} />
+          <Button onClick={requery} disabled={busy === "requery"}>
             Ask FAQ
-          </button>
+          </Button>
         </div>
         {answer &&
           (answer.kind === "answer" ? (
             <div>
-              <div className={cardClass} style={cardStyle}>
+              <Card>
                 <p className="text-sm">{answer.text}</p>
-              </div>
+              </Card>
               {answer.citationUrl && <CitationCard url={answer.citationUrl} title={answer.citationTitle} />}
             </div>
           ) : (
             <RefusalNotice answer={answer} />
           ))}
-        <p className="text-xs" style={{ color: "var(--muted)" }}>
+        <p className="text-xs text-muted">
           Tip: before refreshing, a fee question returns &quot;no verified source&quot;. After refreshing, the
           same question is answered and cites the fee explainer&apos;s source.
         </p>
