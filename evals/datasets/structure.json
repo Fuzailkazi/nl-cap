@@ -1,0 +1,34 @@
+{
+  "suite": "structure",
+  "description": "Output-format contracts from CLAUDE.md plus fixtures. The eval:structure suite checks generated outputs against `contracts`. Pure/rule-based contracts (booking_code) are validated against `fixtures` with no LLM and pass at M0. Pulse/fee/greeting contracts require generated output (M2/M3) and report 'pending' until then.",
+  "contracts": {
+    "weekly_pulse": {
+      "max_words": 250,
+      "required_sections": ["Top Themes", "User Quotes", "Key Observation", "Action Ideas"],
+      "min_quotes": 1,
+      "action_ideas_count": 3
+    },
+    "fee_explainer": {
+      "bullet_count": 6,
+      "source_link_count": 2,
+      "ends_with_regex": "Last checked: \\d{4}-\\d{2}-\\d{2}$"
+    },
+    "booking_code": {
+      "regex": "^KV-[A-Z][0-9]{3}$"
+    },
+    "voice_greeting": {
+      "must_interpolate": "top_theme"
+    }
+  },
+  "fixtures": {
+    "booking_code": {
+      "valid": ["KV-B391", "KV-A000", "KV-Z999"],
+      "invalid": ["KV-b391", "KV-BB91", "KV-391", "kv-B391", "KV-B39", "KV-B3911", "B391", "KV-1391"]
+    },
+    "voice_greeting": {
+      "top_theme": "expense ratio clarity",
+      "valid": ["Welcome back! This week our investors are talking most about expense ratio clarity. How can I help you book a call?"],
+      "invalid": ["Welcome back! How can I help you book a call?"]
+    }
+  }
+}

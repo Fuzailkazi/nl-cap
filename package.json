@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "eval:rag": "tsx evals/run.ts rag",
+    "eval:adversarial": "tsx evals/run.ts adversarial",
+    "eval:structure": "tsx evals/run.ts structure",
+    "eval:all": "tsx evals/run.ts all"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",

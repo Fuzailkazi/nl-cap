@@ -94,12 +94,13 @@ until M0 scaffold + schema are reviewed. MCP + Approval Centre land in **M1**.
   - [x] side-effect tables: `mcp_notes_docs`, `calendar_holds`, `email_drafts`
   - [x] `eval_runs` (id, suite, passed, score, detail jsonb, created_at)
 - [x] Apply migration; confirmed clean (9 tables live)
-- [ ] `lib/db/` — Supabase clients (anon + service-role)
-- [ ] `lib/config` — typed env loader (validates required vars present)
-- [ ] Eval datasets drafted: `evals/datasets/{golden,adversarial,structure}.*`
-- [ ] `eval:rag` / `eval:adversarial` / `eval:structure` / `eval:all` scripts added to `package.json`
-- [ ] **DoD:** `npm run build` passes; migration applies cleanly; review approved
-- [ ] Commit checkpoint
+- [x] `lib/db/` — Supabase clients (lazy `serviceClient()` + `browserClient()`)
+- [x] `lib/config` — typed env loader (`lib/config/env.ts`; lazy grouped `require*()` accessors, never throws at import)
+- [x] Eval datasets drafted: `evals/datasets/{golden,adversarial,structure}.json`
+- [x] `eval:rag` / `eval:adversarial` / `eval:structure` / `eval:all` scripts added to `package.json` (runner `evals/run.ts`; M0 shape-validates + runs rule-based checks, marks prompt checks pending; `eval:all` green, writes `eval_runs`)
+- [x] **DoD:** `npm run build` passes (Next 16, TS strict clean); migration applied; verbatim refusal strings reconciled into `CLAUDE.md`; deviations logged in `docs/DEVIATIONS.md`
+- [ ] **Known issue (deferred):** `npm run lint` broken — `next lint` removed in Next 16; needs ESLint flat-config migration (tracked under stack-drift, not an M0 blocker)
+- [x] Commit checkpoint
 
 ### M1 — FAQ RAG bot + MCP / Approval Centre foundation
 - [ ] **Ingestion pipeline** (`lib/rag/` + a `tsx` script):
