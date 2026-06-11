@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { FaqAnswer } from "@/lib/contracts";
-import { Card, Button, Input } from "@/components/ui";
+import { Card, Button, Input, Skeleton } from "@/components/ui";
 import { CitationCard, RefusalNotice } from "@/components/shared";
 import { ChatBubble } from "@/components/faq/ChatBubble";
 
@@ -22,6 +22,11 @@ export default function FaqPage() {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [draftNote, setDraftNote] = useState<string | null>(null);
+  const endRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, busy]);
 
   async function ask(q: string) {
     const question = q.trim();
@@ -84,11 +89,7 @@ export default function FaqPage() {
           <div className="space-y-2">
             <div className="text-sm text-muted">Try:</div>
             {SUGGESTED.map((s) => (
-              <Card
-                key={s}
-                onClick={() => ask(s)}
-                className="cursor-pointer text-sm hover:bg-black/5"
-              >
+              <Card key={s} interactive onClick={() => ask(s)} className="text-sm">
                 {s}
               </Card>
             ))}
@@ -118,7 +119,15 @@ export default function FaqPage() {
             </div>
           ),
         )}
-        {busy && <div className="text-sm text-muted">Thinking…</div>}
+        {busy && (
+          <div className="flex items-end gap-2">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand/10 text-xs font-semibold text-brand">
+              A
+            </span>
+            <Skeleton className="h-10 w-44 rounded-2xl" />
+          </div>
+        )}
+        <div ref={endRef} />
       </div>
 
       {draftNote && (

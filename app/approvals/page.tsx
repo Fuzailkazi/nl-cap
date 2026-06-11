@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import type { ApprovalRow, ApprovalStatus } from "@/lib/contracts";
-import { Card, Button } from "@/components/ui";
+import { Card, Button, Skeleton } from "@/components/ui";
 import { ApprovalCard } from "@/components/approvals/ApprovalCard";
 
 const FILTERS: (ApprovalStatus | "all")[] = ["all", "pending", "approved", "rejected"];
@@ -80,7 +80,12 @@ export default function ApprovalsPage() {
       {error && <div className="mt-3 text-sm text-rejected">{error}</div>}
 
       <div className="mt-4 space-y-3">
-        {loading && <div className="text-sm text-muted">Loading…</div>}
+        {loading && (
+          <>
+            <Skeleton className="h-24 w-full rounded-xl" />
+            <Skeleton className="h-24 w-full rounded-xl" />
+          </>
+        )}
         {!loading && rows.length === 0 && (
           <Card>
             <span className="text-sm text-muted">No actions{filter !== "all" ? ` (${filter})` : ""} yet.</span>

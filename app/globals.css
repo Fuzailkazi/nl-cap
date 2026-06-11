@@ -39,20 +39,28 @@ body {
 
 /* Heading scale (modern, spacious). h1 honors up to 64px responsively. */
 .h1 {
-  font-size: clamp(2.5rem, 5vw, 4rem); /* up to 64px */
-  line-height: 1.05;
+  font-size: clamp(2rem, 3.5vw, 2.75rem); /* up to ~44px — sized for in-app, not a hero */
+  line-height: 1.1;
   letter-spacing: -0.02em;
   font-weight: 600;
 }
 .h2 {
-  font-size: clamp(1.6rem, 3vw, 2.625rem); /* up to 42px */
-  line-height: 1.15;
+  font-size: clamp(1.35rem, 2.5vw, 1.75rem); /* up to ~28px */
+  line-height: 1.2;
   letter-spacing: -0.01em;
   font-weight: 600;
 }
 .lead {
-  font-size: 1.25rem; /* ~20-22px prose */
-  line-height: 1.5;
+  font-size: 1.125rem; /* ~18px prose */
+  line-height: 1.55;
+  color: var(--color-muted);
+}
+/* Small uppercase section/field label — used across cards for consistency. */
+.label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: var(--color-muted);
 }
 

@@ -35,7 +35,11 @@ export async function runRag(): Promise<SuiteResult> {
     const hits = await retrieve(c.question, { scheme: c.scheme, topK: 6 });
     const ans = await faqAnswer(c.question, hits);
 
-    const citedRight = ans.kind === "answer" && ans.citationUrl === c.expected_citation_url;
+    // Compare at the scheme-page level: an HDFC product page is the same
+    // official source whether the Direct or Regular plan variant is cited
+    // (same fund, same facts), so normalise the trailing /direct|/regular.
+    const canon = (u: string | null) => (u ?? "").replace(/\/(direct|regular)\/?$/, "");
+    const citedRight = ans.kind === "answer" && canon(ans.citationUrl) === canon(c.expected_citation_url);
     if (citedRight) citationsCorrect++;
     else wrong.push(`${c.id}(${ans.kind}${ans.citationUrl ? ` →${ans.citationUrl}` : ""})`);
 

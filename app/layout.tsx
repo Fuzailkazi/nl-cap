@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { MobileNav } from "@/components/layout/MobileNav";
 import "./globals.css";
 
 const inter = Inter({
@@ -24,9 +25,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body className={`${inter.variable} ${geistMono.variable} antialiased`}>
-        <div className="flex min-h-screen">
+        <div className="flex min-h-screen flex-col sm:flex-row">
+          <MobileNav />
           <Sidebar />
-          <main className="flex-1 px-5 py-6 sm:px-8">{children}</main>
+          <main className="flex-1 px-5 py-6 sm:px-8 sm:py-8">{children}</main>
         </div>
       </body>
     </html>

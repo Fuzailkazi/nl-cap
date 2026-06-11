@@ -59,7 +59,7 @@ export default async function Dashboard() {
   const fmt = (n: number | null) => (n === null ? "—" : String(n));
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8">
+    <div className="mx-auto max-w-5xl space-y-10">
       <header>
         <h1 className="h1 text-balance">Advisor Intelligence Suite</h1>
         <p className="lead mt-2 max-w-2xl">
@@ -74,14 +74,14 @@ export default async function Dashboard() {
         </Card>
       )}
 
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Corpus documents" value={fmt(d.corpusDocs)} hint="pgvector chunks + explainers" />
         <StatCard label="Pending approvals" value={fmt(d.pendingApprovals)} accent hint="awaiting human review" />
         <StatCard label="Bookings" value={fmt(d.bookings)} hint="advisor calls scheduled" />
-        <StatCard label="This week’s theme" value={d.topTheme ?? "—"} hint="drives the voice greeting" />
+        <StatCard label="This week’s theme" value={d.topTheme ?? "—"} compact hint="drives the voice greeting" />
       </section>
 
-      <section className="grid gap-3 lg:grid-cols-[2fr_1fr]">
+      <section className="grid gap-4 lg:grid-cols-[2fr_1fr]">
         <PillarLinks />
         <EnvHealth health={health} />
       </section>

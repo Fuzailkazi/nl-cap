@@ -4,3 +4,4 @@ export { Badge } from "./Badge";
 export { Input } from "./Input";
 export { Textarea } from "./Textarea";
 export { Section } from "./Section";
+export { Skeleton } from "./Skeleton";
