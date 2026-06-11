@@ -1,0 +1,7 @@
+review_id,review_date,scheme,channel,rating,review_title,review_text,language
+# review_id: stable id (e.g. R001). review_date: YYYY-MM-DD within the last 8-12 weeks.
+# scheme: one of the 4 manifest schemes. channel: app_store|play_store|kuvera|support_ticket|survey.
+# rating: integer 1-5. review_text: NO PII (no names, emails, phones, folio/PAN). language: ISO code e.g. en, hi.
+R001,2026-04-21,HDFC Flexi Cap Fund,play_store,4,Smooth SIP setup,"SIP setup was quick but the expense ratio wasn't easy to find in the app.",en
+R002,2026-05-02,HDFC Liquid Fund,support_ticket,2,Redemption timing unclear,"Wanted to know cut-off time for same-day redemption; the info was buried.",en
+R003,2026-05-18,HDFC Balanced Advantage Fund,kuvera,5,Good for first-timers,"Clear breakdown of equity vs debt allocation, helped me understand the fund.",en
