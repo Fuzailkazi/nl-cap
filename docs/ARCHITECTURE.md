@@ -27,7 +27,7 @@ Cross-cutting: an **MCP layer** (3 tools) whose every action lands in a
 | `app/` (Voice UI) | Web Speech STT/TTS, reads booking code aloud | `lib/voice`, latest pulse |
 | `app/` (Approval Centre) | lists `approval_queue`, approve/reject → executes MCP tool | `mcp/`, `lib/db` |
 | `app/` (Dashboard) | unified view across pillars + eval run results | `lib/db` |
-| `lib/llm/` | every Anthropic call + its **named prompt export** (shared with evals) | Anthropic SDK |
+| `lib/llm/` | every OpenAI generation call + its **named prompt export** (shared with evals) | OpenAI SDK |
 | `lib/rag/` | embed (OpenAI), upsert/query `corpus` (pgvector) | OpenAI SDK, `lib/db` |
 | `lib/db/` | Supabase clients (anon + service role) | `@supabase/supabase-js` |
 | `mcp/` | MCP server exposing 3 tools; each **enqueues**, never executes | `lib/db` |

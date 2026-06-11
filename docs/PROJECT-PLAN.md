@@ -47,8 +47,9 @@ the same enqueue→approve path instead of bolting it on.
   `headers()`, caching defaults, React 19 semantics.
 - **Source-URL verification:** manifest deep links are *seeded* with
   `last_checked: null`; ingestion MUST fetch + stamp before trusting them.
-- **Embeddings vendor:** OpenAI is the one non-Anthropic dependency
-  (`text-embedding-3-small`, 1536 dims). Swappable via env.
+- **LLM vendor:** OpenAI is now the only LLM vendor — generation (`gpt-4.1`,
+  env `OPENAI_GEN_MODEL`) and embeddings (`text-embedding-3-small`, 1536 dims).
+  Generation was moved off Anthropic (see docs/DEVIATIONS.md #4). Swappable via env.
 - **PII in real reviews:** scrub at ingest; never persist raw PII.
 
 ## Eval matrix (what proves each rule)

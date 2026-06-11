@@ -71,8 +71,9 @@ citation, no advice, no PII, exact refusal strings) are enforced in code and
 | Supabase secret/service key | `SUPABASE_SERVICE_ROLE_KEY` | ✅ set (⚠️ rotate after capstone — pasted in chat) |
 | Supabase anon/publishable key | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ⬜ needed for browser client |
 | Supabase DB connection string | `SUPABASE_DB_URL` | ✅ set (session pooler, ap-southeast-2) — migration applied |
-| Anthropic key | `ANTHROPIC_API_KEY` | ⬜ needed for all generation |
-| OpenAI key | `OPENAI_API_KEY` | ⬜ needed for embeddings |
+| OpenAI key | `OPENAI_API_KEY` | ✅ set (powers **generation + embeddings**; ⚠️ pasted in chat — rotate after capstone) |
+| OpenAI gen model | `OPENAI_GEN_MODEL` | ✅ `gpt-4.1` (default) |
+| Anthropic key | `ANTHROPIC_API_KEY` | ⬜ deprecated — generation moved to OpenAI (DEVIATIONS.md #4) |
 
 ---
 

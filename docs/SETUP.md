@@ -25,17 +25,19 @@ Then fill in the values below.
 > No Supabase yet? You can build/test against local Postgres+pgvector via Docker
 > and swap the connection string later — ask and I'll set that path up.
 
-## 3. Anthropic (LLM generation)
+## 3. OpenAI (LLM generation AND embeddings)
 
-1. Get a key at https://console.anthropic.com → `ANTHROPIC_API_KEY`.
-2. `ANTHROPIC_MODEL` defaults to `claude-sonnet-4-6` (per the project contract).
-3. Confirm the key has credit — generation calls cost a small amount.
-
-## 4. OpenAI (embeddings only)
+A single OpenAI key powers both generation and embeddings (see
+docs/DEVIATIONS.md #4 — generation was moved off Anthropic).
 
 1. Get a key at https://platform.openai.com → `OPENAI_API_KEY`.
-2. Leave `EMBEDDING_MODEL=text-embedding-3-small` and `EMBEDDING_DIM=1536`
+2. `OPENAI_GEN_MODEL` defaults to `gpt-4.1` (generation).
+3. Leave `EMBEDDING_MODEL=text-embedding-3-small` and `EMBEDDING_DIM=1536`
    unless intentionally changing the vector dimension (must match the migration).
+4. Confirm the key has credit — generation + embedding calls cost a small amount.
+
+> Anthropic is no longer required. `ANTHROPIC_API_KEY` / `ANTHROPIC_MODEL`
+> remain in the template only to ease reverting the swap.
 
 ## What is NOT needed
 

@@ -34,7 +34,9 @@ function parseGroup<T extends z.ZodTypeAny>(
 
 // --- Non-secret config with safe defaults (never required) -------------------
 
-export const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL?.trim() || "claude-sonnet-4-6";
+// Generation moved from Anthropic to OpenAI (see DEVIATIONS.md #4); the same
+// OPENAI_API_KEY powers both generation and embeddings.
+export const OPENAI_GEN_MODEL = process.env.OPENAI_GEN_MODEL?.trim() || "gpt-4.1";
 export const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL?.trim() || "text-embedding-3-small";
 export const EMBEDDING_DIM = Number(process.env.EMBEDDING_DIM?.trim() || "1536");
 
@@ -66,25 +68,25 @@ export function requireSupabaseBrowser() {
   });
 }
 
-const anthropicSchema = z.object({ apiKey: nonEmpty, model: nonEmpty });
+const generationSchema = z.object({ apiKey: nonEmpty, model: nonEmpty });
 
-/** Anthropic config for all LLM generation. Throws if not configured. */
-export function requireAnthropic() {
-  return parseGroup("anthropic", anthropicSchema, {
-    apiKey: process.env.ANTHROPIC_API_KEY,
-    model: ANTHROPIC_MODEL,
+/** OpenAI config for all LLM generation. Throws if not configured. */
+export function requireGeneration() {
+  return parseGroup("openai (generation)", generationSchema, {
+    apiKey: process.env.OPENAI_API_KEY,
+    model: OPENAI_GEN_MODEL,
   });
 }
 
-const openaiSchema = z.object({
+const embeddingsSchema = z.object({
   apiKey: nonEmpty,
   embeddingModel: nonEmpty,
   embeddingDim: z.number().int().positive(),
 });
 
-/** OpenAI config for embeddings (the one non-Anthropic vendor). Throws if not configured. */
-export function requireOpenai() {
-  return parseGroup("openai (embeddings)", openaiSchema, {
+/** OpenAI config for embeddings. Same key as generation. Throws if not configured. */
+export function requireEmbeddings() {
+  return parseGroup("openai (embeddings)", embeddingsSchema, {
     apiKey: process.env.OPENAI_API_KEY,
     embeddingModel: EMBEDDING_MODEL,
     embeddingDim: EMBEDDING_DIM,
@@ -111,8 +113,8 @@ export function envStatus() {
   return {
     supabaseService: ok(requireSupabaseService),
     supabaseBrowser: ok(requireSupabaseBrowser),
-    anthropic: ok(requireAnthropic),
-    openai: ok(requireOpenai),
+    generation: ok(requireGeneration),
+    embeddings: ok(requireEmbeddings),
     dbUrl: ok(requireDbUrl),
   };
 }

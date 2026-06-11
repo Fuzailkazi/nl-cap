@@ -97,11 +97,12 @@ Review Intelligence, Voice Scheduler) + Approval Centre + MCP layer + evals.
   (Original spec said Next 14; deps were bumped to latest on request — see
   DEVIATIONS.md #1.)
 - **Supabase** Postgres + pgvector. Migrations in `supabase/migrations/`.
-- **LLM generation**: Anthropic API, model `claude-sonnet-4-6` (env
-  `ANTHROPIC_MODEL`).
+- **LLM generation**: OpenAI API, model `gpt-4.1` (env `OPENAI_GEN_MODEL`).
+  (Originally Anthropic `claude-sonnet-4-6`; moved to OpenAI — see
+  DEVIATIONS.md #4.)
 - **Embeddings**: OpenAI `text-embedding-3-small` (1536 dims, env
-  `EMBEDDING_MODEL` / `EMBEDDING_DIM`). This is the one non-Anthropic
-  vendor — a deliberate decision; requires OPENAI_API_KEY in .env.
+  `EMBEDDING_MODEL` / `EMBEDDING_DIM`). OpenAI is now the only LLM vendor —
+  one `OPENAI_API_KEY` powers both generation and embeddings.
 - **Voice**: Web Speech API (STT) + SpeechSynthesis (TTS) — browser only, no
   paid voice infra.
 - **MCP**: 3 tools in `mcp/` (TS SDK). "Shared doc" and "calendar" are
