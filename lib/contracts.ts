@@ -107,3 +107,59 @@ export interface ApprovalRow {
 export interface EnqueueResult {
   actionId: number;
 }
+
+// ============================================================================
+// M2 — Review Intelligence seams (Weekly Pulse + Fee Explainer)
+// ============================================================================
+
+/** A review as fed to weeklyPulse (NO PII — review_text is pre-scrubbed). */
+export interface ReviewInput {
+  scheme: string;
+  channel: string;
+  rating: number;
+  title: string | null;
+  text: string;
+}
+
+/**
+ * Weekly Pulse structured output. The contract body format (assembled below)
+ * is: Top Themes / User Quotes (≥1) / Key Observation / Action Ideas (exactly 3),
+ * ≤250 words. `topTheme` is the short phrase the voice greeting interpolates (M3).
+ */
+export const weeklyPulseSchema = z.object({
+  topTheme: z.string().min(1),
+  topThemes: z.array(z.string().min(1)).min(1),
+  quotes: z.array(z.string().min(1)).min(1),
+  keyObservation: z.string().min(1),
+  actionIdeas: z.array(z.string().min(1)).length(3),
+});
+export type WeeklyPulse = z.infer<typeof weeklyPulseSchema>;
+
+/** Render a WeeklyPulse to the contracted sectioned body text. */
+export function assembleWeeklyPulseBody(p: WeeklyPulse): string {
+  const themes = p.topThemes.map((t) => `- ${t}`).join("\n");
+  const quotes = p.quotes.map((q) => `- "${q.replace(/^"|"$/g, "")}"`).join("\n");
+  const actions = p.actionIdeas.map((a, i) => `${i + 1}. ${a}`).join("\n");
+  return `Top Themes\n${themes}\n\nUser Quotes\n${quotes}\n\nKey Observation\n${p.keyObservation}\n\nAction Ideas\n${actions}`;
+}
+
+/**
+ * Fee Explainer structured output. Contracted content format (assembled below)
+ * is: exactly 6 bullets, exactly 2 official source links, ends with
+ * "Last checked: YYYY-MM-DD". Inserted into corpus as doc_type='fee_explainer'.
+ */
+export const feeExplainerSchema = z.object({
+  scheme: z.string().nullable(),
+  title: z.string().min(1),
+  bullets: z.array(z.string().min(1)).length(6),
+  sources: z.array(z.object({ title: z.string().min(1), url: z.string().url() })).length(2),
+  lastChecked: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+});
+export type FeeExplainer = z.infer<typeof feeExplainerSchema>;
+
+/** Render a FeeExplainer to the contracted content text (ends with the stamp). */
+export function assembleFeeExplainerContent(e: FeeExplainer): string {
+  const bullets = e.bullets.map((b) => `- ${b}`).join("\n");
+  const sources = e.sources.map((s) => `- ${s.title}: ${s.url}`).join("\n");
+  return `${e.title}\n\n${bullets}\n\nSources:\n${sources}\n\nLast checked: ${e.lastChecked}`;
+}

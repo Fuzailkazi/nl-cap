@@ -13,6 +13,7 @@
     "eval:all": "tsx evals/run.ts all",
     "ingest": "tsx scripts/ingest.ts",
     "ingest:dry": "tsx scripts/ingest.ts --dry",
+    "reviews": "tsx scripts/reviews.ts",
     "mcp": "tsx mcp/server.ts"
   },
   "dependencies": {

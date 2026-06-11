@@ -1,6 +1,11 @@
 import { loadStructure } from "@/evals/lib/dataset";
 import { type SuiteResult, pass, fail, pending } from "@/evals/lib/report";
-import { checkBookingCode, greetingInterpolatesTopTheme } from "@/evals/lib/structure-checks";
+import {
+  checkBookingCode,
+  greetingInterpolatesTopTheme,
+  checkWeeklyPulse,
+  checkFeeExplainer,
+} from "@/evals/lib/structure-checks";
 
 /**
  * eval:structure — output-format contracts.
@@ -49,9 +54,68 @@ export async function runStructure(): Promise<SuiteResult> {
     );
   }
 
-  // --- pulse + fee: need generated output (M2) ---
-  checks.push(pending("weekly_pulse structure", "needs lib/llm/weeklyPulse output (M2)"));
-  checks.push(pending("fee_explainer structure", "needs lib/llm/feeExplainer output (M2)"));
+  // --- pulse + fee: validate the latest real artifacts in the DB. Graceful:
+  //     if the DB/keys are absent (e.g. CI) or nothing is generated yet, report
+  //     pending instead of failing, so this suite stays CI-runnable offline. ---
+  await checkLatestPulse(ds.contracts.weekly_pulse, checks);
+  await checkLatestFeeExplainer(ds.contracts.fee_explainer, checks);
 
   return { suite: "structure", checks };
+}
+
+async function checkLatestPulse(
+  c: ReturnType<typeof loadStructure>["contracts"]["weekly_pulse"],
+  checks: ReturnType<typeof pass>[],
+): Promise<void> {
+  try {
+    const { serviceClient } = await import("@/lib/db");
+    const { data, error } = await serviceClient()
+      .from("pulses")
+      .select("body, word_count")
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (error) throw new Error(error.message);
+    const row = data?.[0];
+    if (!row) {
+      checks.push(pending("weekly_pulse structure", "no pulses row yet — run `npm run reviews`"));
+      return;
+    }
+    const r = checkWeeklyPulse(row.body as string, c);
+    checks.push(
+      r.ok
+        ? pass("weekly_pulse structure", `latest pulse OK (${row.word_count ?? "?"} words)`)
+        : fail("weekly_pulse structure", r.issues.join("; ")),
+    );
+  } catch (e) {
+    checks.push(pending("weekly_pulse structure", `DB unavailable: ${(e as Error).message.split("\n")[0]}`));
+  }
+}
+
+async function checkLatestFeeExplainer(
+  c: ReturnType<typeof loadStructure>["contracts"]["fee_explainer"],
+  checks: ReturnType<typeof pass>[],
+): Promise<void> {
+  try {
+    const { serviceClient } = await import("@/lib/db");
+    const { data, error } = await serviceClient()
+      .from("corpus")
+      .select("content")
+      .eq("doc_type", "fee_explainer")
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (error) throw new Error(error.message);
+    const row = data?.[0];
+    if (!row) {
+      checks.push(pending("fee_explainer structure", "no fee_explainer in corpus — run `npm run reviews`"));
+      return;
+    }
+    const r = checkFeeExplainer(row.content as string, c);
+    checks.push(
+      r.ok
+        ? pass("fee_explainer structure + retrievable", "in corpus as doc_type=fee_explainer; format OK")
+        : fail("fee_explainer structure", r.issues.join("; ")),
+    );
+  } catch (e) {
+    checks.push(pending("fee_explainer structure", `DB unavailable: ${(e as Error).message.split("\n")[0]}`));
+  }
 }

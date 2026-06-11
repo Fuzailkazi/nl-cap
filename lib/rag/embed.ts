@@ -14,7 +14,7 @@ let _dim = 0;
 function client(): { openai: OpenAI; model: string; dim: number } {
   if (!_client) {
     const { apiKey, embeddingModel, embeddingDim } = requireEmbeddings();
-    _client = new OpenAI({ apiKey });
+    _client = new OpenAI({ apiKey, maxRetries: 0, timeout: 60_000 });
     _model = embeddingModel;
     _dim = embeddingDim;
   }

@@ -10,6 +10,8 @@ let _client: OpenAI | null = null;
 
 export function generationClient(): { client: OpenAI; model: string } {
   const { apiKey, model } = requireGeneration();
-  if (!_client) _client = new OpenAI({ apiKey });
+  // maxRetries: 0 so a 429 (e.g. daily-cap with a long Retry-After) surfaces
+  // immediately instead of the SDK sleeping through the backoff and hanging.
+  if (!_client) _client = new OpenAI({ apiKey, maxRetries: 0, timeout: 60_000 });
   return { client: _client, model };
 }

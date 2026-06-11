@@ -1,4 +1,4 @@
-import type { ApprovalStatus, FaqAnswer } from "@/lib/contracts";
+import type { ApprovalStatus, FaqAnswer, FeeExplainer } from "@/lib/contracts";
 
 /** Presentational, hook-free components — usable from server or client. */
 
@@ -77,6 +77,58 @@ export function ChatBubble({ role, children }: { role: "user" | "assistant"; chi
         }
       >
         {children}
+      </div>
+    </div>
+  );
+}
+
+export function PulseCard({
+  pulse,
+}: {
+  pulse: { top_theme: string; body: string; word_count: number | null };
+}) {
+  return (
+    <div className={card} style={cardStyle}>
+      <div className="flex items-center justify-between">
+        <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
+          Weekly Pulse
+        </div>
+        <span className="text-xs" style={{ color: (pulse.word_count ?? 0) > 250 ? "var(--color-rejected)" : "var(--muted)" }}>
+          {pulse.word_count ?? "—"} words
+        </span>
+      </div>
+      <div className="mt-1 text-sm">
+        Top theme: <span className="font-medium" style={{ color: "var(--color-brand)" }}>{pulse.top_theme}</span>
+      </div>
+      <pre className="mt-2 whitespace-pre-wrap font-sans text-sm">{pulse.body}</pre>
+    </div>
+  );
+}
+
+export function FeeExplainerCard({ explainer }: { explainer: FeeExplainer }) {
+  return (
+    <div className={card} style={cardStyle}>
+      <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
+        Fee Explainer · doc_type=fee_explainer
+      </div>
+      <div className="mt-1 font-medium">{explainer.title}</div>
+      <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+        {explainer.bullets.map((b, i) => (
+          <li key={i}>{b}</li>
+        ))}
+      </ul>
+      <div className="mt-3 text-xs" style={{ color: "var(--muted)" }}>
+        Sources:
+        <ul className="list-disc pl-5">
+          {explainer.sources.map((s) => (
+            <li key={s.url}>
+              <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--color-brand)" }}>
+                {s.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-1">Last checked: {explainer.lastChecked}</div>
       </div>
     </div>
   );

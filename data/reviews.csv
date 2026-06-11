@@ -5,3 +5,40 @@ review_id,review_date,scheme,channel,rating,review_title,review_text,language
 R001,2026-04-21,HDFC Flexi Cap Fund,play_store,4,Smooth SIP setup,"SIP setup was quick but the expense ratio wasn't easy to find in the app.",en
 R002,2026-05-02,HDFC Liquid Fund,support_ticket,2,Redemption timing unclear,"Wanted to know cut-off time for same-day redemption; the info was buried.",en
 R003,2026-05-18,HDFC Balanced Advantage Fund,kuvera,5,Good for first-timers,"Clear breakdown of equity vs debt allocation, helped me understand the fund.",en
+R004,2026-04-02,HDFC Flexi Cap Fund,app_store,3,TER not transparent,"The total expense ratio is mentioned in the fact sheet but the app never shows it upfront.",en
+R005,2026-04-04,HDFC Mid-Cap Opportunities Fund,support_ticket,2,Exit load confusion,"Got charged an exit load on a partial withdrawal and nobody explained the one-year rule clearly.",en
+R006,2026-04-05,HDFC Liquid Fund,kuvera,4,Parking surplus cash,"Works well for short-term parking, though I wish the same-day redemption cut-off was clearer.",en
+R007,2026-04-07,HDFC Balanced Advantage Fund,play_store,5,Balanced and steady,"Happy with the dynamic equity-debt mix, felt less volatile during market dips.",en
+R008,2026-04-09,HDFC Flexi Cap Fund,survey,2,SIP date change painful,"Tried to modify my SIP date twice and the request kept failing without a reason.",en
+R009,2026-04-11,HDFC Mid-Cap Opportunities Fund,app_store,4,Solid long-term pick,"Good fund for long horizon but the app benchmark comparison chart loads very slowly.",en
+R010,2026-04-12,HDFC Liquid Fund,support_ticket,1,NAV update delay,"NAV was not updated till late evening and my redemption value looked wrong all day.",en
+R011,2026-04-14,HDFC Balanced Advantage Fund,kuvera,3,Statement format confusing,"The consolidated account statement mixes schemes and is hard to read for tax filing.",en
+R012,2026-04-16,HDFC Flexi Cap Fund,play_store,5,Easy onboarding,"KYC and first investment were smooth, completed everything within a day.",en
+R013,2026-04-18,HDFC Mid-Cap Opportunities Fund,survey,3,Wanted category clarity,"Not sure how this differs from a small-cap fund, the category explanation could be better.",en
+R014,2026-04-20,HDFC Liquid Fund,app_store,4,Good for emergency fund,"Reliable for emergency money but I had to dig to find the exit-load-free policy.",en
+R015,2026-04-22,HDFC Balanced Advantage Fund,support_ticket,2,Switch request stuck,"Requested a switch from regular to direct plan and it stayed pending for a week.",hi
+R016,2026-04-24,HDFC Flexi Cap Fund,kuvera,4,Decent diversification,"Achha diversified portfolio hai, par expense ratio ki jaankari aur saaf honi chahiye.",hi
+R017,2026-04-26,HDFC Mid-Cap Opportunities Fund,play_store,1,App keeps logging out,"The app logs me out every few minutes and I cannot complete my SIP registration.",en
+R018,2026-04-28,HDFC Liquid Fund,survey,3,Redemption cut-off doubt,"Liquid fund redemption cut-off time samajhna mushkil tha, support ne thodi der baad bataya.",hi
+R019,2026-04-30,HDFC Balanced Advantage Fund,app_store,4,Like the auto rebalancing,"Appreciate the automatic rebalancing, just want a clearer view of current allocation.",en
+R020,2026-05-01,HDFC Flexi Cap Fund,support_ticket,2,Slow support response,"Raised a query about benchmark index and waited three days for a vague reply.",en
+R021,2026-05-03,HDFC Mid-Cap Opportunities Fund,kuvera,5,Strong performer,"Glad I stayed invested, the fund category fits my long-term goals well.",en
+R022,2026-05-05,HDFC Liquid Fund,play_store,3,Instant redemption limit,"Instant redemption is capped and the app does not explain the daily limit clearly.",en
+R023,2026-05-06,HDFC Balanced Advantage Fund,survey,2,Tax document missing,"Could not download the capital gains statement for the last financial year from the portal.",en
+R024,2026-05-08,HDFC Flexi Cap Fund,app_store,1,SIP debited twice,"My SIP got debited twice in one month and reversing it took multiple follow-ups.",en
+R025,2026-05-10,HDFC Mid-Cap Opportunities Fund,support_ticket,3,Exit load period unclear,"Asked when the exit load window ends and the agent gave an inconsistent answer.",en
+R026,2026-05-12,HDFC Liquid Fund,kuvera,4,Reliable parking option,"Good place to park funds between investments, NAV mostly updates on time.",en
+R027,2026-05-13,HDFC Balanced Advantage Fund,play_store,5,Peace of mind,"The hybrid approach suits a conservative investor like me, very satisfied overall.",en
+R028,2026-05-15,HDFC Flexi Cap Fund,survey,3,Portfolio disclosure lag,"Monthly portfolio disclosure is delayed compared to other platforms I use.",en
+R029,2026-05-17,HDFC Mid-Cap Opportunities Fund,app_store,2,Benchmark info hidden,"Hard to find which benchmark the fund tracks, had to search the offer document.",en
+R030,2026-05-19,HDFC Liquid Fund,support_ticket,4,Quick resolution,"Support resolved my redemption timing doubt on the same call, good experience.",en
+R031,2026-05-21,HDFC Balanced Advantage Fund,kuvera,3,Allocation view needed,"Want a simple chart showing the current equity to debt split inside the app.",en
+R032,2026-05-23,HDFC Flexi Cap Fund,play_store,4,Happy long-term holder,"Steady fund for my goals, only gripe is the slow KYC update process.",en
+R033,2026-05-25,HDFC Mid-Cap Opportunities Fund,survey,2,SIP modification failed,"SIP amount badhane ki request baar baar fail ho rahi thi, kaafi pareshani hui.",hi
+R034,2026-05-27,HDFC Liquid Fund,app_store,3,Cut-off time buried,"The 1:30 pm cut-off for liquid fund is not shown prominently before placing a redemption.",en
+R035,2026-05-29,HDFC Balanced Advantage Fund,support_ticket,1,Switch charges surprise,"Was not told about the exit load before switching out and got an unexpected deduction.",en
+R036,2026-05-31,HDFC Flexi Cap Fund,kuvera,5,Great for SIP,"Setting up a monthly SIP was effortless and the reminders are helpful.",en
+R037,2026-06-02,HDFC Mid-Cap Opportunities Fund,play_store,4,Good but app laggy,"Like the fund returns over time, however the mobile app feels sluggish on older phones.",en
+R038,2026-06-04,HDFC Liquid Fund,survey,2,Statement download issue,"Tried downloading my account statement and the PDF kept failing to generate.",en
+R039,2026-06-07,HDFC Balanced Advantage Fund,app_store,4,Sensible default fund,"A sensible choice for someone new to mutual funds, wish the fee breakdown was clearer.",en
+R040,2026-06-10,HDFC Flexi Cap Fund,support_ticket,3,KYC re-verification delay,"My KYC re-verification took longer than expected and held up a fresh investment.",en
