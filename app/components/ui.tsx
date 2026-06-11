@@ -145,4 +145,36 @@ export function BookingCodeBadge({ code }: { code: string }) {
   );
 }
 
+export function StatCard({
+  label,
+  value,
+  hint,
+  accent,
+}: {
+  label: string;
+  value: string | number;
+  hint?: string;
+  accent?: boolean;
+}) {
+  return (
+    <div className={card} style={cardStyle}>
+      <div className="text-xs font-medium uppercase tracking-wide" style={{ color: "var(--muted)" }}>
+        {label}
+      </div>
+      <div
+        className="mt-1 truncate text-3xl font-semibold"
+        style={{ color: accent ? "var(--color-brand)" : "var(--foreground)" }}
+        title={String(value)}
+      >
+        {value}
+      </div>
+      {hint && (
+        <div className="mt-1 text-xs" style={{ color: "var(--muted)" }}>
+          {hint}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export { card as cardClass, cardStyle };

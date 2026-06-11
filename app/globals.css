@@ -1,19 +1,24 @@
 @import "tailwindcss";
 
-/* Design tokens (Tailwind v4 CSS-first). Light + dark via prefers-color-scheme. */
+/* =========================================================================
+   Design tokens — light brand. Modern, medium energy, tech-savvy audience.
+   Palette: dark ink #121317 on light surfaces; #2E96FF accent; cool gray-blue
+   neutrals; 12px radius; Inter. Light-only (no auto dark flip).
+   ========================================================================= */
 @theme {
   --color-bg: #f7f8fa;
   --color-surface: #ffffff;
   --color-border: #e3e6eb;
-  --color-fg: #16191d;
+  --color-fg: #121317;
   --color-muted: #5c6470;
-  --color-brand: #0b5cad;
+  --color-brand: #2e96ff;
   --color-brand-fg: #ffffff;
+  --color-brand-weak: #eaf4ff;
   --color-pending: #b7791f;
   --color-approved: #15803d;
-  --color-rejected: #b91c1c;
-  --radius: 0.625rem;
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --color-rejected: #dc2626;
+  --radius: 12px;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
@@ -21,24 +26,41 @@
   --background: var(--color-bg);
   --foreground: var(--color-fg);
   --surface: var(--color-surface);
-  --border: #e3e6eb;
+  --border: var(--color-border);
   --muted: var(--color-muted);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0c0e12;
-    --foreground: #e7eaee;
-    --surface: #14171c;
-    --border: #262b33;
-    --muted: #99a2af;
-  }
+html {
+  background: var(--background);
+  color: var(--foreground);
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: var(--font-sans);
+  font-size: 15px; /* dense UI base; prose/lead uses larger sizes */
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Heading scale (modern, spacious). h1 honors up to 64px responsively. */
+.h1 {
+  font-size: clamp(2.5rem, 5vw, 4rem); /* up to 64px */
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+.h2 {
+  font-size: clamp(1.6rem, 3vw, 2.625rem); /* up to 42px */
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+.lead {
+  font-size: 1.25rem; /* ~20-22px prose */
+  line-height: 1.5;
+  color: var(--muted);
 }
 
 @layer utilities {
