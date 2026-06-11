@@ -32,13 +32,16 @@ function parseGroup<T extends z.ZodTypeAny>(
   return result.data;
 }
 
-// --- Non-secret config with safe defaults (never required) -------------------
-
+// --- Non-secret config with safe defaults — read at CALL TIME ----------------
+// IMPORTANT: these MUST be read inside the accessors, never as module-level
+// consts. tsx scripts call dotenv.config() in their module body, which runs
+// AFTER these imports are evaluated (ESM hoisting) — a module-level const would
+// freeze to its default and silently ignore .env.local overrides.
 // Generation moved from Anthropic to OpenAI (see DEVIATIONS.md #4); the same
 // OPENAI_API_KEY powers both generation and embeddings.
-export const OPENAI_GEN_MODEL = process.env.OPENAI_GEN_MODEL?.trim() || "gpt-4.1";
-export const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL?.trim() || "text-embedding-3-small";
-export const EMBEDDING_DIM = Number(process.env.EMBEDDING_DIM?.trim() || "1536");
+const genModel = () => process.env.OPENAI_GEN_MODEL?.trim() || "gpt-4.1";
+const embedModel = () => process.env.EMBEDDING_MODEL?.trim() || "text-embedding-3-small";
+const embedDim = () => Number(process.env.EMBEDDING_DIM?.trim() || "1536");
 
 // --- Lazy, grouped accessors -------------------------------------------------
 
@@ -74,7 +77,7 @@ const generationSchema = z.object({ apiKey: nonEmpty, model: nonEmpty });
 export function requireGeneration() {
   return parseGroup("openai (generation)", generationSchema, {
     apiKey: process.env.OPENAI_API_KEY,
-    model: OPENAI_GEN_MODEL,
+    model: genModel(),
   });
 }
 
@@ -88,8 +91,8 @@ const embeddingsSchema = z.object({
 export function requireEmbeddings() {
   return parseGroup("openai (embeddings)", embeddingsSchema, {
     apiKey: process.env.OPENAI_API_KEY,
-    embeddingModel: EMBEDDING_MODEL,
-    embeddingDim: EMBEDDING_DIM,
+    embeddingModel: embedModel(),
+    embeddingDim: embedDim(),
   });
 }
 
