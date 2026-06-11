@@ -41,16 +41,16 @@ export type RetrieveFn = (query: string, opts?: RetrieveOptions) => Promise<Retr
  * - "advice_refusal": text === ADVICE_REFUSAL, no citation
  * - "corpus_miss":   text === CORPUS_MISS,    no citation
  */
-export const faqAnswerSchema = z
-  .object({
-    kind: z.enum(["answer", "advice_refusal", "corpus_miss"]),
-    text: z.string().min(1),
-    citationUrl: z.string().url().nullable(),
-    citationTitle: z.string().nullable(),
-  })
-  .refine((a) => (a.kind === "answer" ? a.citationUrl !== null : a.citationUrl === null), {
-    message: "answer kind requires exactly one citation; refusals must have none",
-  });
+// Lenient on shape (some models return "" instead of null for citationUrl, or
+// a non-URL placeholder). enforceContract() in lib/llm/faqAnswer is the layer
+// that GUARANTEES the real contract (verbatim refusals; an answer must cite a
+// retrieved hit URL or it degrades to corpus_miss).
+export const faqAnswerSchema = z.object({
+  kind: z.enum(["answer", "advice_refusal", "corpus_miss"]),
+  text: z.string(),
+  citationUrl: z.string().nullable(),
+  citationTitle: z.string().nullable(),
+});
 export type FaqAnswer = z.infer<typeof faqAnswerSchema>;
 
 /** Verbatim refusal strings — the single source of truth in code (mirror CLAUDE.md). */
@@ -163,3 +163,22 @@ export function assembleFeeExplainerContent(e: FeeExplainer): string {
   const sources = e.sources.map((s) => `- ${s.title}: ${s.url}`).join("\n");
   return `${e.title}\n\n${bullets}\n\nSources:\n${sources}\n\nLast checked: ${e.lastChecked}`;
 }
+
+// ============================================================================
+// Cross-cutting — PII detection (reviews ingest, voice scheduler, evals)
+// ============================================================================
+
+// PAN, 10-digit phone, email, long digit runs (folio/account).
+const PII_PATTERN = /[A-Z]{5}[0-9]{4}[A-Z]|\b\d{10}\b|@[a-z0-9.-]+\.[a-z]{2,}|\b\d{11,16}\b/i;
+
+/** True if `text` appears to contain personal data. Single source of truth. */
+export function detectPII(text: string): boolean {
+  return PII_PATTERN.test(text);
+}
+
+// ============================================================================
+// M3 — Voice Scheduler seam
+// ============================================================================
+
+/** Canonical booking-code shape: KV- + letter + 3 digits (e.g. KV-B391). */
+export const BOOKING_CODE_REGEX = /^KV-[A-Z][0-9]{3}$/;

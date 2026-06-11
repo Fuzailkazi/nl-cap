@@ -68,26 +68,25 @@ function buildUserMessage(question: string, hits: RetrievalHit[]): string {
 
 /** One model call → parsed candidate (or null if JSON/parse fails). */
 async function callOnce(question: string, hits: RetrievalHit[]): Promise<FaqAnswer | null> {
-  const { client, model } = generationClient();
-  const res = await client.chat.completions.create({
-    model,
-    messages: [
-      { role: "system", content: FAQ_SYSTEM_PROMPT },
-      { role: "user", content: buildUserMessage(question, hits) },
-    ],
-    response_format: { type: "json_schema", json_schema: RESPONSE_JSON_SCHEMA },
-    temperature: 0,
-  });
-  const raw = res.choices[0]?.message?.content;
-  if (!raw) return null;
-  let parsed: unknown;
+  const { client, model } = generationClient(); // throws clearly if key missing — let it surface
   try {
-    parsed = JSON.parse(raw);
+    const res = await client.chat.completions.create({
+      model,
+      messages: [
+        { role: "system", content: FAQ_SYSTEM_PROMPT },
+        { role: "user", content: buildUserMessage(question, hits) },
+      ],
+      response_format: { type: "json_schema", json_schema: RESPONSE_JSON_SCHEMA },
+      temperature: 0,
+    });
+    const raw = res.choices[0]?.message?.content;
+    if (!raw) return null;
+    const result = faqAnswerSchema.safeParse(JSON.parse(raw));
+    return result.success ? result.data : null;
   } catch {
+    // Transient API error or unparseable output — let the caller retry once.
     return null;
   }
-  const result = faqAnswerSchema.safeParse(parsed);
-  return result.success ? result.data : null;
 }
 
 /**

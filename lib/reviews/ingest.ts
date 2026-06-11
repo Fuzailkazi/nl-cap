@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { parse } from "csv-parse/sync";
 import { serviceClient } from "@/lib/db";
-import type { ReviewInput } from "@/lib/contracts";
+import { type ReviewInput, detectPII } from "@/lib/contracts";
 
 /**
  * Pillar 2 — reviews ingestion. Parses data/reviews.csv, scrubs/skips any row
@@ -21,13 +21,6 @@ export interface ReviewRow {
   language: string;
 }
 
-// PAN, 10-digit phone, email, long digit runs (folio/account).
-const PII = /[A-Z]{5}[0-9]{4}[A-Z]|\b\d{10}\b|@[a-z0-9.-]+\.[a-z]{2,}|\b\d{11,16}\b/i;
-
-export function hasPII(text: string): boolean {
-  return PII.test(text);
-}
-
 export function parseReviewsCsv(): { rows: ReviewRow[]; skippedPII: string[] } {
   const csv = readFileSync(resolve(process.cwd(), "data", "reviews.csv"), "utf8");
   const records = parse(csv, {
@@ -41,7 +34,7 @@ export function parseReviewsCsv(): { rows: ReviewRow[]; skippedPII: string[] } {
   const skippedPII: string[] = [];
   for (const r of records) {
     const text = r.review_text ?? "";
-    if (hasPII(text) || hasPII(r.review_title ?? "")) {
+    if (detectPII(text) || detectPII(r.review_title ?? "")) {
       skippedPII.push(r.review_id);
       continue;
     }

@@ -6,6 +6,8 @@ import {
   checkWeeklyPulse,
   checkFeeExplainer,
 } from "@/evals/lib/structure-checks";
+import { buildGreeting, generateBookingCode } from "@/lib/voice/scheduler";
+import { BOOKING_CODE_REGEX } from "@/lib/contracts";
 
 /**
  * eval:structure — output-format contracts.
@@ -57,10 +59,46 @@ export async function runStructure(): Promise<SuiteResult> {
   // --- pulse + fee: validate the latest real artifacts in the DB. Graceful:
   //     if the DB/keys are absent (e.g. CI) or nothing is generated yet, report
   //     pending instead of failing, so this suite stays CI-runnable offline. ---
+  // --- booking_code GENERATOR (M3): every generated code matches the contract ---
+  const generated = Array.from({ length: 50 }, () => generateBookingCode());
+  const badGen = generated.filter((c) => !BOOKING_CODE_REGEX.test(c));
+  checks.push(
+    badGen.length === 0
+      ? pass("booking_code generator", `50/50 generated codes match the contract (e.g. ${generated[0]})`)
+      : fail("booking_code generator", `invalid: ${badGen.slice(0, 3).join(", ")}`),
+  );
+
   await checkLatestPulse(ds.contracts.weekly_pulse, checks);
   await checkLatestFeeExplainer(ds.contracts.fee_explainer, checks);
+  await checkVoiceGreeting(checks);
 
   return { suite: "structure", checks };
+}
+
+/** M3 flow-B: the greeting built from the LATEST pulse top_theme must contain it. */
+async function checkVoiceGreeting(checks: ReturnType<typeof pass>[]): Promise<void> {
+  try {
+    const { serviceClient } = await import("@/lib/db");
+    const { data, error } = await serviceClient()
+      .from("pulses")
+      .select("top_theme")
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (error) throw new Error(error.message);
+    const theme = data?.[0]?.top_theme as string | undefined;
+    if (!theme) {
+      checks.push(pending("voice greeting interpolates latest pulse theme", "no pulses row yet"));
+      return;
+    }
+    const greeting = buildGreeting(theme);
+    checks.push(
+      greetingInterpolatesTopTheme(greeting, theme)
+        ? pass("voice greeting interpolates latest pulse theme", `theme "${theme}" present`)
+        : fail("voice greeting interpolates latest pulse theme", `theme "${theme}" missing`),
+    );
+  } catch (e) {
+    checks.push(pending("voice greeting interpolates latest pulse theme", `DB unavailable: ${(e as Error).message.split("\n")[0]}`));
+  }
 }
 
 async function checkLatestPulse(

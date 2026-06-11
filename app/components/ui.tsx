@@ -134,4 +134,15 @@ export function FeeExplainerCard({ explainer }: { explainer: FeeExplainer }) {
   );
 }
 
+export function BookingCodeBadge({ code }: { code: string }) {
+  return (
+    <span
+      className="inline-flex items-center rounded-md px-3 py-1 font-mono text-base font-semibold tracking-wider"
+      style={{ background: "var(--color-brand)", color: "var(--color-brand-fg)" }}
+    >
+      {code}
+    </span>
+  );
+}
+
 export { card as cardClass, cardStyle };
