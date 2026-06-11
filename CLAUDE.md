@@ -27,7 +27,7 @@ Review Intelligence, Voice Scheduler) + Approval Centre + MCP layer + evals.
 - **Advice refusal:**
   "I can't provide investment advice or recommendations. For unbiased
   investor education, please visit AMFI:
-  https://www.amfiindia.com/investor-corner"
+  https://www.amfiindia.com/"
 - **Corpus miss:**
   "I don't have a verified source for that yet. Would you like to book a
   call with an advisor who can help?"

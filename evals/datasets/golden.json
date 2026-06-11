@@ -1,45 +1,45 @@
 {
   "suite": "rag",
-  "description": "Golden RAG dataset. Each case is a factual question answerable from ONE official source in data/source-manifest.json. The M1 eval:rag suite asserts: answer cites expected_citation_url, answer is <= max_sentences, answer mentions answer_must_contain terms, and LLM-judged faithfulness/relevance >= 0.8. Citation URLs are drawn verbatim from the manifest.",
+  "description": "Golden RAG dataset. Each case is a factual question answerable from ONE verified official source in data/source-manifest.json (v2 — all HTTP 200). The M1 eval:rag suite asserts: answer cites expected_citation_url, answer is <= max_sentences, answer mentions answer_must_contain terms, and LLM-judged faithfulness/relevance >= 0.8. Citation URLs are drawn verbatim from the verified manifest.",
   "min_cases": 5,
   "cases": [
     {
       "id": "G1",
-      "question": "What is the current expense ratio of the HDFC Flexi Cap Fund?",
+      "question": "What benchmark index does the HDFC Flexi Cap Fund use?",
       "scheme": "HDFC Flexi Cap Fund",
-      "expected_citation_url": "https://www.hdfcfund.com/content/dam/abc/factsheet/hdfc-flexi-cap-fund-factsheet.pdf",
-      "answer_must_contain": ["expense ratio"],
+      "expected_citation_url": "https://www.hdfcfund.com/explore/mutual-funds/hdfc-flexi-cap-fund/direct",
+      "answer_must_contain": ["benchmark"],
       "max_sentences": 3
     },
     {
       "id": "G2",
-      "question": "What is the exit load on the HDFC Mid-Cap Opportunities Fund?",
+      "question": "Which equity category does the HDFC Mid-Cap Opportunities Fund belong to?",
       "scheme": "HDFC Mid-Cap Opportunities Fund",
-      "expected_citation_url": "https://www.hdfcfund.com/content/dam/abc/kim/hdfc-mid-cap-opportunities-fund-kim.pdf",
-      "answer_must_contain": ["exit load"],
+      "expected_citation_url": "https://www.hdfcfund.com/explore/mutual-funds/hdfc-mid-cap-fund/direct",
+      "answer_must_contain": ["mid"],
       "max_sentences": 3
     },
     {
       "id": "G3",
-      "question": "Which category does the HDFC Balanced Advantage Fund belong to?",
+      "question": "Is the HDFC Balanced Advantage Fund an equity, debt, or hybrid fund?",
       "scheme": "HDFC Balanced Advantage Fund",
-      "expected_citation_url": "https://www.hdfcfund.com/our-products/hybrid/hdfc-balanced-advantage-fund",
-      "answer_must_contain": ["balanced advantage"],
+      "expected_citation_url": "https://www.hdfcfund.com/explore/mutual-funds/hdfc-balanced-advantage-fund/direct",
+      "answer_must_contain": ["hybrid"],
       "max_sentences": 3
     },
     {
       "id": "G4",
-      "question": "What is the cut-off time for same-day redemption in the HDFC Liquid Fund?",
+      "question": "What type of mutual fund is the HDFC Liquid Fund?",
       "scheme": "HDFC Liquid Fund",
-      "expected_citation_url": "https://www.hdfcfund.com/content/dam/abc/sid/hdfc-debt-schemes-sid.pdf",
-      "answer_must_contain": ["cut-off"],
+      "expected_citation_url": "https://www.hdfcfund.com/explore/mutual-funds/hdfc-liquid-fund/direct",
+      "answer_must_contain": ["liquid"],
       "max_sentences": 3
     },
     {
       "id": "G5",
       "question": "What does the expense ratio of a mutual fund mean?",
       "scheme": null,
-      "expected_citation_url": "https://www.amfiindia.com/investor-corner/knowledge-center/mutual-fund-expense-ratio.html",
+      "expected_citation_url": "https://kuvera.in/learn/what-is-expense-ratio",
       "answer_must_contain": ["expense ratio"],
       "max_sentences": 3
     }

@@ -38,7 +38,7 @@ citation, no advice, no PII, exact refusal strings) are enforced in code and
 | Output | Contract |
 |---|---|
 | FAQ answer | ≤3 sentences, **exactly one** citation link, no performance claims, no advice |
-| Advice request | polite refusal + AMFI link `https://www.amfiindia.com/investor-corner` |
+| Advice request | polite refusal + AMFI link `https://www.amfiindia.com/` (was `/investor-corner` — 404; see DEVIATIONS #5) |
 | Corpus miss | exact string: *"I don't have a verified source for that yet"* + offer to book a call |
 | Weekly Pulse | ≤250 words; sections = Top Themes / User Quotes (≥1) / Key Observation / Action Ideas (exactly 3) |
 | Fee Explainer | exactly 6 bullets, neutral tone, exactly 2 official links, ends `Last checked: YYYY-MM-DD` |
