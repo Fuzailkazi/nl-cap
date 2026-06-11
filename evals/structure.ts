@@ -9,7 +9,7 @@ import { checkBookingCode, greetingInterpolatesTopTheme } from "@/evals/lib/stru
  * fixtures and run for real now. Pulse + fee-explainer need generated output
  * (M2) so they report pending until their generators exist.
  */
-export function runStructure(): SuiteResult {
+export async function runStructure(): Promise<SuiteResult> {
   const checks = [];
   const ds = loadStructure(); // shape-validated on load — a real assertion
   checks.push(pass("dataset loads + validates", "structure.json conforms to schema"));

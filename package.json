@@ -10,12 +10,16 @@
     "eval:rag": "tsx evals/run.ts rag",
     "eval:adversarial": "tsx evals/run.ts adversarial",
     "eval:structure": "tsx evals/run.ts structure",
-    "eval:all": "tsx evals/run.ts all"
+    "eval:all": "tsx evals/run.ts all",
+    "ingest": "tsx scripts/ingest.ts",
+    "ingest:dry": "tsx scripts/ingest.ts --dry",
+    "mcp": "tsx mcp/server.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@supabase/supabase-js": "^2.108.1",
+    "cheerio": "^1.2.0",
     "csv-parse": "^6.2.1",
     "next": "16.2.9",
     "openai": "^6.42.0",

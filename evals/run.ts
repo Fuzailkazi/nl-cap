@@ -11,7 +11,7 @@ loadEnv({ path: ".env.local" });
 
 type SuiteName = "rag" | "adversarial" | "structure" | "all";
 
-const RUNNERS: Record<Exclude<SuiteName, "all">, () => SuiteResult> = {
+const RUNNERS: Record<Exclude<SuiteName, "all">, () => Promise<SuiteResult>> = {
   rag: runRag,
   adversarial: runAdversarial,
   structure: runStructure,
@@ -54,7 +54,8 @@ async function main() {
   const toRun: Exclude<SuiteName, "all">[] =
     suite === "all" ? ["rag", "adversarial", "structure"] : [suite];
 
-  const results = toRun.map((s) => RUNNERS[s]());
+  const results: SuiteResult[] = [];
+  for (const s of toRun) results.push(await RUNNERS[s]());
   let allOk = true;
   for (const r of results) allOk = printSuite(r) && allOk;
 

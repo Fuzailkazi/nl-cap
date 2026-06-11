@@ -1,0 +1,162 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import type { FaqAnswer } from "@/lib/contracts";
+import { CitationCard, RefusalNotice, ChatBubble, cardClass, cardStyle } from "@/app/components/ui";
+
+type Msg =
+  | { role: "user"; text: string }
+  | { role: "assistant"; answer: FaqAnswer; question: string };
+
+const SUGGESTED = [
+  "What benchmark does the HDFC Flexi Cap Fund use?",
+  "Is the HDFC Balanced Advantage Fund equity, debt, or hybrid?",
+  "Which HDFC fund should I buy for the best returns?",
+];
+
+export default function FaqPage() {
+  const [messages, setMessages] = useState<Msg[]>([]);
+  const [input, setInput] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [draftNote, setDraftNote] = useState<string | null>(null);
+
+  async function ask(q: string) {
+    const question = q.trim();
+    if (!question || busy) return;
+    setInput("");
+    setDraftNote(null);
+    setMessages((m) => [...m, { role: "user", text: question }]);
+    setBusy(true);
+    try {
+      const res = await fetch("/api/faq", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ question }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "request failed");
+      setMessages((m) => [...m, { role: "assistant", answer: data.answer as FaqAnswer, question }]);
+    } catch (e) {
+      setMessages((m) => [
+        ...m,
+        {
+          role: "assistant",
+          question,
+          answer: { kind: "corpus_miss", text: `Error: ${(e as Error).message}`, citationUrl: null, citationTitle: null },
+        },
+      ]);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function draftEmail(question: string, answer: FaqAnswer) {
+    setDraftNote("Drafting…");
+    try {
+      const res = await fetch("/api/faq/draft-email", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          subject: `Follow-up: ${question}`,
+          body: `You asked: ${question}\n\nOur answer: ${answer.text}\n\n${answer.citationUrl ? `Source: ${answer.citationUrl}` : ""}`,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "failed");
+      setDraftNote(`Queued action #${data.actionId} — review it in the Approval Centre.`);
+    } catch (e) {
+      setDraftNote(`Could not draft: ${(e as Error).message}`);
+    }
+  }
+
+  return (
+    <div className="mx-auto flex h-[calc(100vh-3rem)] max-w-2xl flex-col">
+      <h1 className="text-xl font-semibold">FAQ Bot</h1>
+      <p className="text-sm" style={{ color: "var(--muted)" }}>
+        Factual answers about HDFC schemes — ≤3 sentences, one citation, never advice.
+      </p>
+
+      <div className="mt-4 flex-1 space-y-3 overflow-y-auto pr-1">
+        {messages.length === 0 && (
+          <div className="space-y-2">
+            <div className="text-sm" style={{ color: "var(--muted)" }}>Try:</div>
+            {SUGGESTED.map((s) => (
+              <button
+                key={s}
+                onClick={() => ask(s)}
+                className={`${cardClass} block w-full text-left text-sm hover:bg-black/5 dark:hover:bg-white/10`}
+                style={cardStyle}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {messages.map((m, i) =>
+          m.role === "user" ? (
+            <ChatBubble key={i} role="user">
+              {m.text}
+            </ChatBubble>
+          ) : (
+            <div key={i} className="space-y-1">
+              {m.answer.kind === "answer" ? (
+                <>
+                  <ChatBubble role="assistant">{m.answer.text}</ChatBubble>
+                  {m.answer.citationUrl && (
+                    <CitationCard url={m.answer.citationUrl} title={m.answer.citationTitle} />
+                  )}
+                  <button
+                    onClick={() => draftEmail(m.question, m.answer)}
+                    className="text-xs underline"
+                    style={{ color: "var(--color-brand)" }}
+                  >
+                    Draft follow-up email →
+                  </button>
+                </>
+              ) : (
+                <RefusalNotice answer={m.answer} />
+              )}
+            </div>
+          ),
+        )}
+        {busy && (
+          <div className="text-sm" style={{ color: "var(--muted)" }}>
+            Thinking…
+          </div>
+        )}
+      </div>
+
+      {draftNote && (
+        <div className="mt-2 text-xs" style={{ color: "var(--muted)" }}>
+          {draftNote} <Link href="/approvals" className="underline">Open Approval Centre</Link>
+        </div>
+      )}
+
+      <form
+        className="mt-3 flex gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          ask(input);
+        }}
+      >
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Ask about an HDFC scheme…"
+          className="flex-1 rounded-[var(--radius)] border px-3 py-2 text-sm outline-none"
+          style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+        />
+        <button
+          type="submit"
+          disabled={busy}
+          className="rounded-[var(--radius)] px-4 py-2 text-sm font-medium disabled:opacity-50"
+          style={{ background: "var(--color-brand)", color: "var(--color-brand-fg)" }}
+        >
+          Send
+        </button>
+      </form>
+    </div>
+  );
+}
