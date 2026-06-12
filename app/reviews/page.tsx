@@ -6,11 +6,11 @@ import { Card, Button, Input } from "@/components/ui";
 import { CitationCard, RefusalNotice } from "@/components/shared";
 import { PulseCard } from "@/components/reviews/PulseCard";
 import { FeeExplainerCard } from "@/components/reviews/FeeExplainerCard";
-
-type Pulse = { top_theme: string; body: string; word_count: number | null };
+import { PulseHistory, type PulseItem } from "@/components/reviews/PulseHistory";
 
 export default function ReviewsPage() {
-  const [pulse, setPulse] = useState<Pulse | null>(null);
+  const [pulse, setPulse] = useState<PulseItem | null>(null);
+  const [history, setHistory] = useState<PulseItem[]>([]);
   const [explainer, setExplainer] = useState<FeeExplainer | null>(null);
   const [refreshNote, setRefreshNote] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -22,7 +22,10 @@ export default function ReviewsPage() {
   useEffect(() => {
     fetch("/api/reviews")
       .then((r) => r.json())
-      .then((d) => setPulse(d.pulse))
+      .then((d) => {
+        setPulse(d.pulse);
+        setHistory(d.history ?? []);
+      })
       .catch((e) => setError(String(e)));
   }, []);
 
@@ -34,6 +37,7 @@ export default function ReviewsPage() {
       const d = await res.json();
       if (!res.ok) throw new Error(d.error);
       setPulse(d.pulse);
+      setHistory((h) => [d.pulse, ...h]);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -103,6 +107,19 @@ export default function ReviewsPage() {
               No pulse yet. Run <code>npm run reviews</code> or click Regenerate.
             </span>
           </Card>
+        )}
+        {history.length > 0 && (
+          <div className="space-y-1">
+            <div className="label">History (click to view)</div>
+            <PulseHistory
+              items={history}
+              selectedId={pulse?.id ?? null}
+              onSelect={(id) => {
+                const it = history.find((h) => h.id === id);
+                if (it) setPulse(it);
+              }}
+            />
+          </div>
         )}
       </section>
 

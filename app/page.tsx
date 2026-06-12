@@ -1,9 +1,7 @@
-import { envStatus } from "@/lib/config/env";
 import { serviceClient } from "@/lib/db";
 import { Card, Section } from "@/components/ui";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { PillarLinks } from "@/components/dashboard/PillarLinks";
-import { EnvHealth } from "@/components/dashboard/EnvHealth";
 import { EvalRunsTable, type EvalRun } from "@/components/dashboard/EvalRunsTable";
 
 export const dynamic = "force-dynamic";
@@ -28,7 +26,7 @@ async function loadDashboard(): Promise<DashboardData> {
       db.from("pulses").select("top_theme").order("created_at", { ascending: false }).limit(1),
       db
         .from("eval_runs")
-        .select("suite, passed, score, created_at")
+        .select("suite, passed, score, created_at, detail")
         .order("created_at", { ascending: false })
         .limit(8),
     ]);
@@ -50,12 +48,6 @@ async function loadDashboard(): Promise<DashboardData> {
 
 export default async function Dashboard() {
   const d = await loadDashboard();
-  const env = envStatus();
-  const health: [string, boolean][] = [
-    ["Supabase", env.supabaseService],
-    ["OpenAI generation", env.generation],
-    ["OpenAI embeddings", env.embeddings],
-  ];
   const fmt = (n: number | null) => (n === null ? "—" : String(n));
 
   return (
@@ -81,10 +73,7 @@ export default async function Dashboard() {
         <StatCard label="This week’s theme" value={d.topTheme ?? "—"} compact hint="drives the voice greeting" />
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-[2fr_1fr]">
-        <PillarLinks />
-        <EnvHealth health={health} />
-      </section>
+      <PillarLinks />
 
       <Section title="Recent eval runs">
         <EvalRunsTable runs={d.evalRuns} />
