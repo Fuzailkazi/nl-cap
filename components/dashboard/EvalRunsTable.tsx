@@ -23,6 +23,16 @@ export interface EvalRun {
 const ICON = { pass: "✓", fail: "✗", pending: "·" } as const;
 const COLOR = { pass: "text-approved", fail: "text-rejected", pending: "text-muted" } as const;
 
+/**
+ * Deterministic timestamp format (UTC, no locale) so server and client render
+ * the SAME string — avoids React hydration mismatches that `toLocaleString()`
+ * causes (server timezone/locale ≠ browser's). e.g. "2026-06-11 17:00 UTC".
+ */
+function fmtWhen(iso: string): string {
+  const [date, time] = iso.split("T");
+  return `${date} ${(time ?? "").slice(0, 5)} UTC`;
+}
+
 export function EvalRunsTable({ runs }: { runs: EvalRun[] }) {
   const [open, setOpen] = useState<number | null>(null); // start collapsed; click a row to toggle
 
@@ -66,7 +76,7 @@ export function EvalRunsTable({ runs }: { runs: EvalRun[] }) {
                     {r.passed ? "passed" : "failed"}
                   </td>
                   <td className="p-3">{r.score === null ? "—" : `${Math.round(r.score * 100)}%`}</td>
-                  <td className="p-3 text-right text-muted">{new Date(r.created_at).toLocaleString()}</td>
+                  <td className="p-3 text-right text-muted">{fmtWhen(r.created_at)}</td>
                 </tr>
                 {isOpen && (
                   <tr className="border-t border-border bg-bg/40">

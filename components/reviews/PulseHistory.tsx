@@ -29,7 +29,7 @@ export function PulseHistory({
         >
           <span className="truncate">{it.top_theme}</span>
           <span className="ml-2 shrink-0 text-xs text-muted">
-            {new Date(it.created_at).toLocaleDateString()} · {it.word_count ?? "?"}w
+            {it.created_at.slice(0, 10)} · {it.word_count ?? "?"}w
           </span>
         </button>
       ))}

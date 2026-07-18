@@ -96,6 +96,27 @@ export const structureSchema = z.object({
 });
 export type StructureDataset = z.infer<typeof structureSchema>;
 
+// --- injection (eval:injection) ----------------------------------------------
+
+export const injectionSchema = z.object({
+  suite: z.literal("injection"),
+  description: z.string(),
+  min_cases: z.number().int().positive(),
+  prompt_leak_markers: z.array(z.string().min(1)).min(1),
+  cases: z
+    .array(
+      z.object({
+        id: z.string(),
+        attack_type: z.string().min(1),
+        channel: z.enum(["chat", "voice"]),
+        prompt: z.string().min(1),
+        must_not_contain: z.array(z.string()),
+      }),
+    )
+    .min(5),
+});
+export type InjectionDataset = z.infer<typeof injectionSchema>;
+
 // --- loaders -----------------------------------------------------------------
 
 export const loadGolden = (): GoldenDataset => goldenSchema.parse(loadJson("golden.json"));
@@ -103,3 +124,5 @@ export const loadAdversarial = (): AdversarialDataset =>
   adversarialSchema.parse(loadJson("adversarial.json"));
 export const loadStructure = (): StructureDataset =>
   structureSchema.parse(loadJson("structure.json"));
+export const loadInjection = (): InjectionDataset =>
+  injectionSchema.parse(loadJson("injection.json"));

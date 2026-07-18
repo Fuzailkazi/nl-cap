@@ -1,6 +1,8 @@
 import { config as loadEnv } from "dotenv";
-import { runRag } from "@/evals/rag";
-import { runAdversarial } from "@/evals/adversarial";
+import { runRetrieval } from "@/evals/retrieval";
+import { runGeneration } from "@/evals/generation";
+import { runCompliance } from "@/evals/compliance";
+import { runInjection } from "@/evals/injection";
 import { runStructure } from "@/evals/structure";
 import { type SuiteResult, printSuite } from "@/evals/lib/report";
 
@@ -9,18 +11,27 @@ import { type SuiteResult, printSuite } from "@/evals/lib/report";
 // vars never break the run — the DB write just gets skipped.
 loadEnv({ path: ".env.local" });
 
-type SuiteName = "rag" | "adversarial" | "structure" | "all";
+type Suite = "retrieval" | "generation" | "compliance" | "injection" | "structure";
+type SuiteName = Suite | "all";
 
-const RUNNERS: Record<Exclude<SuiteName, "all">, () => Promise<SuiteResult>> = {
-  rag: runRag,
-  adversarial: runAdversarial,
+const RUNNERS: Record<Suite, () => Promise<SuiteResult>> = {
+  retrieval: runRetrieval,
+  generation: runGeneration,
+  compliance: runCompliance,
+  injection: runInjection,
   structure: runStructure,
 };
 
+// Back-compat aliases so old commands/docs keep working after the suite split.
+const ALIASES: Record<string, Suite> = { rag: "generation", adversarial: "compliance" };
+
+const ALL_ORDER: Suite[] = ["retrieval", "generation", "compliance", "injection", "structure"];
+
 function parseArg(): SuiteName {
-  const arg = (process.argv[2] ?? "all").toLowerCase();
+  const raw = (process.argv[2] ?? "all").toLowerCase();
+  const arg: string = ALIASES[raw] ?? raw;
   if (arg === "all" || arg in RUNNERS) return arg as SuiteName;
-  console.error(`Unknown suite "${arg}". Use: rag | adversarial | structure | all`);
+  console.error(`Unknown suite "${raw}". Use: ${ALL_ORDER.join(" | ")} | all`);
   process.exit(2);
 }
 
@@ -51,8 +62,7 @@ async function recordRun(suite: SuiteName, results: SuiteResult[]): Promise<void
 
 async function main() {
   const suite = parseArg();
-  const toRun: Exclude<SuiteName, "all">[] =
-    suite === "all" ? ["rag", "adversarial", "structure"] : [suite];
+  const toRun: Suite[] = suite === "all" ? ALL_ORDER : [suite];
 
   const results: SuiteResult[] = [];
   for (const s of toRun) results.push(await RUNNERS[s]());

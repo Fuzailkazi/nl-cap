@@ -11,6 +11,63 @@
 Capstone: voice-first mutual fund assistant. Three pillars (FAQ RAG bot,
 Review Intelligence, Voice Scheduler) + Approval Centre + MCP layer + evals.
 
+## Commands
+```bash
+npm run dev            # Next.js dev server (Turbopack) on :3000
+npm run build          # production build — MUST pass with blank keys (env is lazy)
+npm run lint           # eslint (eslint-config-next)
+
+# Data pipelines (tsx scripts, load .env.local; need OPENAI_API_KEY + Supabase)
+npm run ingest         # embed data/source-manifest.json URLs → corpus (pgvector)
+npm run ingest:dry     # ingest without writing (fetch/chunk/embed dry-run)
+npm run reviews        # data/reviews.csv → reviews table → pulse + fee explainer
+npm run mcp            # start the MCP server (mcp/server.ts)
+
+# Evals — one CLI (evals/run.ts) dispatches every suite. `all` runs the 5 in order.
+npm run eval:all       # retrieval → generation → compliance → injection → structure
+npm run eval:retrieval # RAG recall/citation over evals/datasets/golden.json
+npm run eval:generation# faithfulness/relevance (LLM-as-judge) — needs OPENAI_API_KEY
+npm run eval:compliance# advice refusal / corpus miss / no-PII (rule-based)
+npm run eval:injection # prompt-injection resistance over datasets/injection.json
+npm run eval:structure # pulse/fee-explainer/greeting/booking-code format checks
+# Back-compat aliases still work: eval:rag → generation, eval:adversarial → compliance.
+```
+No unit-test runner: correctness is enforced by the eval suites above (rule-based
+where possible; LLM-as-judge only for faithfulness/relevance). To run one suite
+directly: `tsx evals/run.ts <suite>`. Evals record a row in `eval_runs` when
+Supabase is configured, and skip that write silently otherwise.
+
+## Codebase map (where things actually live)
+- **Shared contracts** — `lib/contracts.ts` is the single source of truth for
+  every cross-pillar type, Zod schema, the verbatim refusal strings
+  (`ADVICE_REFUSAL` / `CORPUS_MISS` / `PII_DEFLECTION`), `BOOKING_CODE_REGEX`,
+  `detectPII()`, and the `assemble*Body/Content` renderers evals check against.
+  Change a format here, not in scattered call sites.
+- **Env** — `lib/config/env.ts`: lazy, grouped accessors (`requireGeneration`,
+  `requireEmbeddings`, `requireSupabase*`, `requireDbUrl`). NEVER throws at
+  import time; each throws only when its group is used with missing vars. Read
+  config inside accessors, never as module-level consts (tsx `dotenv.config()`
+  runs after import hoisting). `.env.example` lists every var.
+- **LLM calls + prompts** — `lib/llm/{faqAnswer,weeklyPulse,feeExplainer}.ts`.
+  Each prompt is a named export (`*_SYSTEM_PROMPT`) so evals import the exact
+  production prompt. `client.ts` = one OpenAI generation client (`maxRetries:0`).
+  `faqAnswer.enforceContract()` is what actually guarantees verbatim refusals
+  and downgrades an uncited answer to a corpus miss.
+- **RAG** — `lib/rag/`: `embed.ts`, `ingest.ts`, `retrieve.ts`, `refresh.ts`
+  (`refreshCorpus()` — the review-analyst calls this; it never edits retrieval).
+- **MCP / approval gate** — `lib/mcp/{tools,queue,execute}.ts` + `mcp/server.ts`.
+  Every tool ENQUEUES to `approval_queue` (status `pending`) and returns an
+  action id; side-effect tables are written only on approve. No auto-execute path.
+- **Voice** — `lib/voice/scheduler.ts`: `buildGreeting(topTheme)`,
+  `generateBookingCode()`, `spellCodeForSpeech()`, `MOCK_SLOTS`.
+- **DB** — `lib/db/index.ts`: `serviceClient()` (server) / `browserClient()`.
+  Tables (`supabase/migrations/0001_init.sql`): `corpus`, `reviews`, `pulses`,
+  `bookings`, `approval_queue`, `mcp_notes_docs`, `calendar_holds`,
+  `email_drafts`, `eval_runs`.
+- **UI** — `app/` routes (faq, reviews, voice, approvals, dashboard) + `app/api/*`
+  route handlers; presentational components in `components/` (`ui/` primitives,
+  then per-pillar folders).
+
 ## Non-negotiable product rules (compliance)
 - FAQ answers: ≤3 sentences, exactly ONE citation link, no performance
   claims, no investment advice. Advice requests → the verbatim advice
