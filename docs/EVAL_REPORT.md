@@ -1,8 +1,18 @@
 # Evals Report
 
 **Project:** Mutual Fund Advisor Intelligence Suite
-**Generation model:** OpenAI `gpt-4o-mini` · **Embeddings:** `text-embedding-3-small` (1536-d)
-**Run date:** 2026-06-11 · **Reproduce:** `npm run eval:all` (writes a row to the `eval_runs` table)
+**Generation model:** Gemini `gemini-2.5-flash-lite` · **Embeddings:** `gemini-embedding-001` (1536-d)
+**Vendor:** Google Gemini via its OpenAI-compatible endpoint (`GEMINI_BASE_URL`) — see DEVIATIONS.md #8/#9
+**Run date:** 2026-08-03 · **Reproduce:** `npm run eval:all` (writes a row to the `eval_runs` table)
+
+> **Status of this run (2026-08-03, post-Gemini migration).** The corpus was
+> re-embedded into the Gemini vector space (203 chunks) and `retrieval` +
+> `structure` were re-run green against it — see "Post-migration re-run" below.
+> `generation`, `compliance`, and `injection` could NOT be re-run: Gemini's free
+> tier caps generation at **20 requests/day, per model**, and those three suites
+> need roughly 35–50 calls between them. Their scores below are from the
+> pre-migration OpenAI run and are marked stale. Enable billing on the Gemini
+> key to reproduce the full suite.
 
 The evals *are* the spec: compliance rules are encoded as pass/fail checks. Suites are rule-based where possible; an LLM-as-judge is used only for faithfulness/relevance. Prompts are imported from `lib/llm/` so the eval measures the exact production prompt (no drift).
 
@@ -86,7 +96,7 @@ Output-format contracts (rule-based, no LLM). Validates the latest generated Wee
 | Booking-code regex vs fixtures (`^KV-[A-Z][0-9]{3}$`) | ✅ 3 valid + 8 invalid classified |
 | Booking-code generator | ✅ 50/50 generated codes match contract |
 | Voice greeting fixture interpolates top theme | ✅ |
-| Weekly Pulse structure (≤250 words; Top Themes / Quotes ≥1 / Key Observation / 3 Action Ideas) | ✅ 146 words |
+| Weekly Pulse structure (≤250 words; Top Themes / Quotes ≥1 / Key Observation / 3 Action Ideas) | ✅ 111 words |
 | Fee Explainer (6 bullets, 2 official links, "Last checked:" stamp) + retrievable in corpus | ✅ |
 | Voice greeting interpolates the **latest pulse** top theme (flow B) | ✅ |
 
@@ -95,5 +105,29 @@ Output-format contracts (rule-based, no LLM). Validates the latest generated Wee
 ## Notes & reproducibility
 
 - **Reproduce:** `npm run eval:all` runs all three suites and records the run in the `eval_runs` table (surfaced on the dashboard).
-- **Quota caveat:** the OpenAI project is on the free tier (**50 requests/day per chat model**). Heavy same-day re-runs can exhaust the daily allowance and throttle the LLM-dependent suites with HTTP 429; this is an account-tier limit, not a correctness issue. Structure checks are rule-based and unaffected.
+- **Quota caveat:** the Gemini key is on the free tier, which meters **generation per day, per model** (`generate_content_free_tier_requests`, limit **20/day** — observed identically for `gemini-2.5-flash` and `gemini-2.5-flash-lite`) and **embeddings per input, per minute** (~100/min). A full `eval:all` needs ~35–50 generation calls, so it cannot complete in one day on the free tier; this is an account-tier limit, not a correctness issue. `lib/rateLimit.ts` rides out per-minute throttling and fails fast on a daily cap rather than sleeping through it. Retrieval (embeddings only) and structure (rule-based + DB) are unaffected.
 - **Citation comparison:** an HDFC product page is treated as the same official source whether the Direct or Regular plan variant is cited (same fund, same facts).
+
+---
+
+## Post-migration re-run (2026-08-03, Gemini)
+
+Run after re-embedding the corpus with `gemini-embedding-001` (`npm run ingest`,
+203 chunks) and regenerating the pulse + fee explainer (`npm run reviews`).
+
+| Suite | Result | Notes |
+|-------|--------|-------|
+| `retrieval` | **PASS — 10/10** | Recall@1/@3/@5 = 100%, MRR 1.000, 100% gold ranked #1, context recall 100%. Confirms the Gemini vector space retrieves as well as the OpenAI one it replaced. |
+| `structure` | **PASS — 7/7** | All three DB-backed checks now green (pulse 145 words ≤250, fee explainer retrievable as `doc_type=fee_explainer`, greeting interpolates top theme "Information clarity on fees and redemptions"). |
+| `generation` | *not run* | Blocked by the 20/day free-tier generation cap. |
+| `compliance` | *not run* | Blocked by the same cap. |
+| `injection` | *not run* | Blocked by the same cap. |
+
+Context precision reports 0.800 against a single-label ceiling of ~0.20 — the
+golden set labels one gold chunk per question, so precision is report-only and
+not a pass/fail gate.
+
+A `0002_eval_runs_suites.sql` migration was needed before these runs recorded:
+the `eval_runs.suite` CHECK constraint still listed the pre-split suite names
+(`rag`/`adversarial`), so `retrieval`, `generation`, `compliance`, and
+`injection` were silently failing to write history while still reporting PASS.
