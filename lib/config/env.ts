@@ -40,7 +40,7 @@ function parseGroup<T extends z.ZodTypeAny>(
 // Generation moved Anthropic → OpenAI (DEVIATIONS.md #4) → Gemini via the
 // OpenAI-compatible endpoint (DEVIATIONS.md #8); the same GEMINI_API_KEY
 // powers both generation and embeddings.
-const genModel = () => process.env.GEMINI_GEN_MODEL?.trim() || "gemini-2.5-flash";
+const genModel = () => process.env.GEMINI_GEN_MODEL?.trim() || "gemini-2.5-flash-lite";
 const embedModel = () => process.env.EMBEDDING_MODEL?.trim() || "gemini-embedding-001";
 const embedDim = () => Number(process.env.EMBEDDING_DIM?.trim() || "1536");
 // Optional OpenAI-COMPATIBLE base URL (DEVIATIONS.md #8: Gemini via

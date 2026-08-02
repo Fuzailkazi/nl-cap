@@ -5,7 +5,9 @@ import {
   ADVICE_REFUSAL,
   CORPUS_MISS,
 } from "@/lib/contracts";
+import OpenAI from "openai";
 import { generationClient } from "@/lib/llm/client";
+import { withRateLimitRetry } from "@/lib/rateLimit";
 
 /**
  * Pillar 1 — FAQ RAG answer.
@@ -70,21 +72,30 @@ function buildUserMessage(question: string, hits: RetrievalHit[]): string {
 async function callOnce(question: string, hits: RetrievalHit[]): Promise<FaqAnswer | null> {
   const { client, model } = generationClient(); // throws clearly if key missing — let it surface
   try {
-    const res = await client.chat.completions.create({
-      model,
-      messages: [
-        { role: "system", content: FAQ_SYSTEM_PROMPT },
-        { role: "user", content: buildUserMessage(question, hits) },
-      ],
-      response_format: { type: "json_schema", json_schema: RESPONSE_JSON_SCHEMA },
-      temperature: 0,
-    });
+    const res = await withRateLimitRetry(
+      () => client.chat.completions.create({
+        model,
+        messages: [
+          { role: "system", content: FAQ_SYSTEM_PROMPT },
+          { role: "user", content: buildUserMessage(question, hits) },
+        ],
+        response_format: { type: "json_schema", json_schema: RESPONSE_JSON_SCHEMA },
+        temperature: 0,
+      }),
+      "faqAnswer",
+    );
     const raw = res.choices[0]?.message?.content;
     if (!raw) return null;
     const result = faqAnswerSchema.safeParse(JSON.parse(raw));
     return result.success ? result.data : null;
-  } catch {
-    // Transient API error or unparseable output — let the caller retry once.
+  } catch (err) {
+    // Only MALFORMED MODEL OUTPUT earns a retry. A vendor/transport failure
+    // (unknown GEMINI_GEN_MODEL, exhausted quota, network) is not a schema
+    // problem: reporting it as one sends debugging in exactly the wrong
+    // direction, and the caller's retry fires straight back into the same
+    // failure — doubling request volume against a rate limit that is already
+    // refusing us. Let those propagate with the vendor's own message.
+    if (err instanceof OpenAI.APIError) throw err;
     return null;
   }
 }

@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { requireEmbeddings } from "@/lib/config/env";
+import { withRateLimitRetry } from "@/lib/rateLimit";
 
 /**
  * Embedding helpers for the RAG layer. One OpenAI client is lazily constructed
@@ -36,7 +37,10 @@ export async function embedText(text: string): Promise<number[]> {
   const { openai, model, dim } = client();
   // `dimensions` pins the output length: text-embedding-3-* and Gemini's
   // gemini-embedding-001 (via the OpenAI-compat endpoint) both honour it.
-  const res = await openai.embeddings.create({ model, input: text, dimensions: dim });
+  const res = await withRateLimitRetry(
+    () => openai.embeddings.create({ model, input: text, dimensions: dim }),
+    "embedText",
+  );
   return assertDim(res.data[0].embedding, dim);
 }
 
@@ -49,7 +53,10 @@ export async function embedText(text: string): Promise<number[]> {
 export async function embedBatch(texts: string[]): Promise<number[][]> {
   if (texts.length === 0) return [];
   const { openai, model, dim } = client();
-  const res = await openai.embeddings.create({ model, input: texts, dimensions: dim });
+  const res = await withRateLimitRetry(
+    () => openai.embeddings.create({ model, input: texts, dimensions: dim }),
+    "embedBatch",
+  );
   const ordered = [...res.data].sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
   return ordered.map((d) => assertDim(d.embedding, dim));
 }

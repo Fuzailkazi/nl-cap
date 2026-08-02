@@ -27,8 +27,8 @@ Cross-cutting: an **MCP layer** (3 tools) whose every action lands in a
 | `app/` (Voice UI) | Web Speech STT/TTS, reads booking code aloud | `lib/voice`, latest pulse |
 | `app/` (Approval Centre) | lists `approval_queue`, approve/reject → executes MCP tool | `mcp/`, `lib/db` |
 | `app/` (Dashboard) | unified view across pillars + eval run results | `lib/db` |
-| `lib/llm/` | every OpenAI generation call + its **named prompt export** (shared with evals) | OpenAI SDK |
-| `lib/rag/` | embed (OpenAI), upsert/query `corpus` (pgvector) | OpenAI SDK, `lib/db` |
+| `lib/llm/` | every Gemini generation call + its **named prompt export** (shared with evals) | OpenAI SDK (Gemini compat endpoint) |
+| `lib/rag/` | embed (Gemini), upsert/query `corpus` (pgvector) | OpenAI SDK (Gemini compat endpoint), `lib/db` |
 | `lib/db/` | Supabase clients (anon + service role) | `@supabase/supabase-js` |
 | `mcp/` | MCP server exposing 3 tools; each **enqueues**, never executes | `lib/db` |
 | `evals/` | RAG / adversarial / structure evals via npm scripts | `lib/llm` prompts |
@@ -67,7 +67,7 @@ flowchart TD
         SRC[HDFC factsheets/KIM/SID - AMFI - SEBI - Kuvera]
     end
 
-    SRC -->|ingest + embed OpenAI| CORPUS[("corpus<br/>pgvector")]
+    SRC -->|ingest + embed Gemini| CORPUS[("corpus<br/>pgvector")]
 
     subgraph P1["Pillar 1 - FAQ RAG"]
         Q[User question] --> RAG[lib/rag retrieve]

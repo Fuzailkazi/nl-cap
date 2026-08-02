@@ -155,7 +155,9 @@ Supabase is configured, and skip that write silently otherwise.
   DEVIATIONS.md #1.)
 - **Supabase** Postgres + pgvector. Migrations in `supabase/migrations/`.
 - **LLM generation**: Gemini via Google's OpenAI-compatible endpoint
-  (`GEMINI_BASE_URL`), model `gemini-2.5-flash` (env `GEMINI_GEN_MODEL`).
+  (`GEMINI_BASE_URL`), model `gemini-2.5-flash-lite` (env `GEMINI_GEN_MODEL`).
+  Free-tier generation is capped **per day, per model** — `gemini-2.5-flash` is
+  only 20/day, which is why `flash-lite` is the default (DEVIATIONS.md #9).
   (Originally Anthropic `claude-sonnet-4-6` → OpenAI `gpt-4.1` → Gemini —
   see DEVIATIONS.md #4 and #8.)
 - **Embeddings**: Gemini `gemini-embedding-001` pinned to 1536 dims via the
@@ -169,8 +171,9 @@ Supabase is configured, and skip that write silently otherwise.
 - **MCP**: 3 tools in `mcp/` (TS SDK). "Shared doc" and "calendar" are
   Supabase tables rendered in the UI, labelled MCP-backed.
 - **Evals**: `evals/`, runnable via `npm run eval:*`. Rule-based where
-  possible; LLM-as-judge only for faithfulness/relevance. A GitHub Action
-  runs `npm run eval:structure` on every push to main.
+  possible; LLM-as-judge only for faithfulness/relevance. (A GitHub Action
+  running `npm run eval:structure` on push was planned but is NOT set up —
+  there is no `.github/` in the repo. Run the suites locally.)
 
 ```
 app/        Next.js routes + UI (3 pillars + dashboard + Approval Centre)

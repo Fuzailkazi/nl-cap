@@ -5,6 +5,7 @@ import {
   assembleWeeklyPulseBody,
 } from "@/lib/contracts";
 import { generationClient } from "@/lib/llm/client";
+import { withRateLimitRetry } from "@/lib/rateLimit";
 
 /**
  * Pillar 2 — Weekly Pulse over customer reviews.
@@ -52,15 +53,18 @@ function reviewsBlock(reviews: ReviewInput[]): string {
 
 async function callOnce(reviews: ReviewInput[], extra: string): Promise<WeeklyPulse | null> {
   const { client, model } = generationClient();
-  const res = await client.chat.completions.create({
-    model,
-    temperature: 0,
-    messages: [
-      { role: "system", content: WEEKLY_PULSE_SYSTEM_PROMPT + extra },
-      { role: "user", content: `Reviews this week:\n${reviewsBlock(reviews)}` },
-    ],
-    response_format: { type: "json_schema", json_schema: RESPONSE_JSON_SCHEMA },
-  });
+  const res = await withRateLimitRetry(
+    () => client.chat.completions.create({
+      model,
+      temperature: 0,
+      messages: [
+        { role: "system", content: WEEKLY_PULSE_SYSTEM_PROMPT + extra },
+        { role: "user", content: `Reviews this week:\n${reviewsBlock(reviews)}` },
+      ],
+      response_format: { type: "json_schema", json_schema: RESPONSE_JSON_SCHEMA },
+    }),
+    "weeklyPulse",
+  );
   const raw = res.choices[0]?.message?.content;
   if (!raw) return null;
   try {

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { type FeeExplainer, feeExplainerSchema } from "@/lib/contracts";
 import { generationClient } from "@/lib/llm/client";
+import { withRateLimitRetry } from "@/lib/rateLimit";
 
 /**
  * Pillar 2 — Fee Explainer. Inserted into the corpus as doc_type='fee_explainer'
@@ -43,15 +44,18 @@ const draftSchema = z.object({ title: z.string().min(1), bullets: z.array(z.stri
 
 async function callOnce(): Promise<z.infer<typeof draftSchema> | null> {
   const { client, model } = generationClient();
-  const res = await client.chat.completions.create({
-    model,
-    temperature: 0,
-    messages: [
-      { role: "system", content: FEE_EXPLAINER_SYSTEM_PROMPT },
-      { role: "user", content: "Write the fee explainer." },
-    ],
-    response_format: { type: "json_schema", json_schema: RESPONSE_JSON_SCHEMA },
-  });
+  const res = await withRateLimitRetry(
+    () => client.chat.completions.create({
+      model,
+      temperature: 0,
+      messages: [
+        { role: "system", content: FEE_EXPLAINER_SYSTEM_PROMPT },
+        { role: "user", content: "Write the fee explainer." },
+      ],
+      response_format: { type: "json_schema", json_schema: RESPONSE_JSON_SCHEMA },
+    }),
+    "feeExplainer",
+  );
   const raw = res.choices[0]?.message?.content;
   if (!raw) return null;
   try {

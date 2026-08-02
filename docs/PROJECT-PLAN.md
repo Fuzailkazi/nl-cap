@@ -47,9 +47,11 @@ the same enqueue→approve path instead of bolting it on.
   `headers()`, caching defaults, React 19 semantics.
 - **Source-URL verification:** manifest deep links are *seeded* with
   `last_checked: null`; ingestion MUST fetch + stamp before trusting them.
-- **LLM vendor:** OpenAI is now the only LLM vendor — generation (`gpt-4.1`,
-  env `OPENAI_GEN_MODEL`) and embeddings (`text-embedding-3-small`, 1536 dims).
-  Generation was moved off Anthropic (see docs/DEVIATIONS.md #4). Swappable via env.
+- **LLM vendor:** Gemini is now the only LLM vendor, reached through Google's
+  OpenAI-compatible endpoint (`GEMINI_BASE_URL`) — generation
+  (`gemini-2.5-flash-lite`, env `GEMINI_GEN_MODEL`) and embeddings
+  (`gemini-embedding-001`, 1536 dims). Moved Anthropic → OpenAI → Gemini (see
+  docs/DEVIATIONS.md #4 and #8). Swappable via env.
 - **PII in real reviews:** scrub at ingest; never persist raw PII.
 
 ## Eval matrix (what proves each rule)

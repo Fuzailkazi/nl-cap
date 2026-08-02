@@ -20,6 +20,10 @@ const FETCH_TIMEOUT_MS = 20_000;
 const CHUNK_SIZE = 1000;
 const CHUNK_OVERLAP = 100;
 const MIN_CHUNK_CHARS = 50;
+/** Inputs per embedding request, and the pause between requests. 45 per ~30s
+ *  keeps us under Gemini's free-tier ~100-inputs/min embedding budget. */
+const EMBED_BATCH = 45;
+const EMBED_BATCH_PAUSE_MS = 30_000;
 
 interface ManifestSource {
   url: string;
@@ -222,11 +226,14 @@ export async function ingestCorpus(
     .neq("doc_type", "fee_explainer");
   if (delErr) throw new Error(`Failed to clear corpus: ${delErr.message}`);
 
-  // Embed in batches and insert.
+  // Embed in batches and insert. Gemini's free tier meters embeddings per
+  // INPUT (~100/min), so a batch of N spends N of the budget: pace the loop to
+  // stay under it rather than relying on embedBatch's 429 retry to absorb every
+  // burst. embedBatch still retries — this just avoids provoking the limit.
   let inserted = 0;
-  const BATCH = 64;
-  for (let i = 0; i < pending.length; i += BATCH) {
-    const slice = pending.slice(i, i + BATCH);
+  for (let i = 0; i < pending.length; i += EMBED_BATCH) {
+    if (i > 0) await new Promise((r) => setTimeout(r, EMBED_BATCH_PAUSE_MS));
+    const slice = pending.slice(i, i + EMBED_BATCH);
     const vectors = await embedBatch(slice.map((r) => r.content));
     const rows = slice.map((r, j) => ({
       doc_type: r.doc_type,
