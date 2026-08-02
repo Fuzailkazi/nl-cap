@@ -41,6 +41,21 @@ function isHardQuota(err: unknown): boolean {
   return delay != null && delay > MAX_BACKOFF_MS;
 }
 
+/**
+ * Retryable failures. Beyond 429s, Gemini returns 503 UNAVAILABLE whenever the
+ * backing model is momentarily overloaded, and the SDK surfaces dropped
+ * connections with NO status at all. Both are transient and single-request —
+ * without retrying them one blip aborts an entire ingest or eval sweep, which
+ * is exactly what happened before this existed. 4xx other than 429 (bad key,
+ * unknown model, malformed request) are deterministic: retrying only wastes
+ * quota, so they propagate immediately.
+ */
+function isTransient(err: unknown): boolean {
+  const status = (err as { status?: number })?.status;
+  if (status === undefined) return true; // connection reset / timeout
+  return status === 429 || status === 500 || status === 502 || status === 503 || status === 504;
+}
+
 export async function withRateLimitRetry<T>(
   fn: () => Promise<T>,
   label = "request",
@@ -50,16 +65,16 @@ export async function withRateLimitRetry<T>(
       return await fn();
     } catch (err) {
       const status = (err as { status?: number })?.status;
-      if (status !== 429) throw err;
 
-      if (isHardQuota(err)) {
+      // A daily/plan cap is terminal — say so instead of burning six retries.
+      if (status === 429 && isHardQuota(err)) {
         throw new Error(
           `${label}: provider daily/plan quota exhausted — retrying cannot clear this. ` +
             `Enable billing or switch to a model with remaining quota ` +
             `(GEMINI_GEN_MODEL / EMBEDDING_MODEL). Original: ${(err as Error).message}`,
         );
       }
-      if (attempt >= MAX_ATTEMPTS) throw err;
+      if (!isTransient(err) || attempt >= MAX_ATTEMPTS) throw err;
 
       const wait = retryDelayMs(err) ?? Math.min(2 ** attempt * 1_000, 30_000);
       // +1s of margin: the provider's window edge is not exactly our clock's.

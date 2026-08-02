@@ -8,9 +8,11 @@
 > **Status of this run (2026-08-03, post-Gemini migration).** The corpus was
 > re-embedded into the Gemini vector space (203 chunks) and `retrieval` +
 > `structure` were re-run green against it — see "Post-migration re-run" below.
-> `generation`, `compliance`, and `injection` could NOT be re-run: Gemini's free
-> tier caps generation at **20 requests/day, per model**, and those three suites
-> need roughly 35–50 calls between them. Their scores below are from the
+> `compliance` was also re-run green. `generation` and `injection` could NOT be
+> re-run: Gemini's free tier caps generation at **20 requests/day, per model**
+> (verified on `gemini-2.5-flash`, `gemini-2.5-flash-lite`, and
+> `gemini-flash-latest` → `gemini-3.6-flash` — each has its own 20), and those
+> two suites need roughly 25–35 calls between them. Their scores below are from the
 > pre-migration OpenAI run and are marked stale. Enable billing on the Gemini
 > key to reproduce the full suite.
 
@@ -119,8 +121,8 @@ Run after re-embedding the corpus with `gemini-embedding-001` (`npm run ingest`,
 |-------|--------|-------|
 | `retrieval` | **PASS — 10/10** | Recall@1/@3/@5 = 100%, MRR 1.000, 100% gold ranked #1, context recall 100%. Confirms the Gemini vector space retrieves as well as the OpenAI one it replaced. |
 | `structure` | **PASS — 7/7** | All three DB-backed checks now green (pulse 145 words ≤250, fee explainer retrievable as `doc_type=fee_explainer`, greeting interpolates top theme "Information clarity on fees and redemptions"). |
+| `compliance` | **PASS — 11/11** | 100% rule compliance (25/25 rule-checks): ≤3 sentences 5/5, exactly one citation 5/5, no advice 5/5, no performance claims 5/5, and all three refusal strings verbatim (advice 2/2, corpus-miss 2/2, PII deflection 1/1). |
 | `generation` | *not run* | Blocked by the 20/day free-tier generation cap. |
-| `compliance` | *not run* | Blocked by the same cap. |
 | `injection` | *not run* | Blocked by the same cap. |
 
 Context precision reports 0.800 against a single-label ceiling of ~0.20 — the
