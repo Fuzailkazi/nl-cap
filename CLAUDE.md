@@ -17,7 +17,7 @@ npm run dev            # Next.js dev server (Turbopack) on :3000
 npm run build          # production build — MUST pass with blank keys (env is lazy)
 npm run lint           # eslint (eslint-config-next)
 
-# Data pipelines (tsx scripts, load .env.local; need OPENAI_API_KEY + Supabase)
+# Data pipelines (tsx scripts, load .env.local; need GEMINI_API_KEY + Supabase)
 npm run ingest         # embed data/source-manifest.json URLs → corpus (pgvector)
 npm run ingest:dry     # ingest without writing (fetch/chunk/embed dry-run)
 npm run reviews        # data/reviews.csv → reviews table → pulse + fee explainer
@@ -26,7 +26,7 @@ npm run mcp            # start the MCP server (mcp/server.ts)
 # Evals — one CLI (evals/run.ts) dispatches every suite. `all` runs the 5 in order.
 npm run eval:all       # retrieval → generation → compliance → injection → structure
 npm run eval:retrieval # RAG recall/citation over evals/datasets/golden.json
-npm run eval:generation# faithfulness/relevance (LLM-as-judge) — needs OPENAI_API_KEY
+npm run eval:generation# faithfulness/relevance (LLM-as-judge) — needs GEMINI_API_KEY
 npm run eval:compliance# advice refusal / corpus miss / no-PII (rule-based)
 npm run eval:injection # prompt-injection resistance over datasets/injection.json
 npm run eval:structure # pulse/fee-explainer/greeting/booking-code format checks
@@ -154,12 +154,16 @@ Supabase is configured, and skip that write silently otherwise.
   (Original spec said Next 14; deps were bumped to latest on request — see
   DEVIATIONS.md #1.)
 - **Supabase** Postgres + pgvector. Migrations in `supabase/migrations/`.
-- **LLM generation**: OpenAI API, model `gpt-4.1` (env `OPENAI_GEN_MODEL`).
-  (Originally Anthropic `claude-sonnet-4-6`; moved to OpenAI — see
-  DEVIATIONS.md #4.)
-- **Embeddings**: OpenAI `text-embedding-3-small` (1536 dims, env
-  `EMBEDDING_MODEL` / `EMBEDDING_DIM`). OpenAI is now the only LLM vendor —
-  one `OPENAI_API_KEY` powers both generation and embeddings.
+- **LLM generation**: Gemini via Google's OpenAI-compatible endpoint
+  (`GEMINI_BASE_URL`), model `gemini-2.5-flash` (env `GEMINI_GEN_MODEL`).
+  (Originally Anthropic `claude-sonnet-4-6` → OpenAI `gpt-4.1` → Gemini —
+  see DEVIATIONS.md #4 and #8.)
+- **Embeddings**: Gemini `gemini-embedding-001` pinned to 1536 dims via the
+  `dimensions` param (env `EMBEDDING_MODEL` / `EMBEDDING_DIM`), same
+  OpenAI-compatible endpoint. One vendor, one `GEMINI_API_KEY` (holds the
+  Gemini key) powers both generation and embeddings. Changing
+  `EMBEDDING_MODEL` changes the vector space — re-run `npm run ingest` +
+  `npm run reviews` after any switch.
 - **Voice**: Web Speech API (STT) + SpeechSynthesis (TTS) — browser only, no
   paid voice infra.
 - **MCP**: 3 tools in `mcp/` (TS SDK). "Shared doc" and "calendar" are

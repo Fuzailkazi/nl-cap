@@ -25,16 +25,21 @@ Then fill in the values below.
 > No Supabase yet? You can build/test against local Postgres+pgvector via Docker
 > and swap the connection string later — ask and I'll set that path up.
 
-## 3. OpenAI (LLM generation AND embeddings)
+## 3. Gemini (LLM generation AND embeddings)
 
-A single OpenAI key powers both generation and embeddings (see
-docs/DEVIATIONS.md #4 — generation was moved off Anthropic).
+A single Gemini key powers both generation and embeddings through Google's
+OpenAI-compatible endpoint (see docs/DEVIATIONS.md #4 and #8 — generation
+moved Anthropic → OpenAI → Gemini).
 
-1. Get a key at https://platform.openai.com → `OPENAI_API_KEY`.
-2. `OPENAI_GEN_MODEL` defaults to `gpt-4.1` (generation).
-3. Leave `EMBEDDING_MODEL=text-embedding-3-small` and `EMBEDDING_DIM=1536`
-   unless intentionally changing the vector dimension (must match the migration).
-4. Confirm the key has credit — generation + embedding calls cost a small amount.
+1. Get a key at https://aistudio.google.com/apikey → `GEMINI_API_KEY`.
+2. Set `GEMINI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/`
+   (blank = talk to api.openai.com directly with an OpenAI key instead).
+3. `GEMINI_GEN_MODEL` defaults to `gemini-2.5-flash` (generation).
+4. Leave `EMBEDDING_MODEL=gemini-embedding-001` and `EMBEDDING_DIM=1536`
+   unless intentionally changing the vector dimension (must match the
+   migration). If you change EMBEDDING_MODEL, re-run `npm run ingest` +
+   `npm run reviews` — the vector space changes.
+5. Confirm the key has quota — generation + embedding calls cost a small amount.
 
 > Anthropic is no longer required. `ANTHROPIC_API_KEY` / `ANTHROPIC_MODEL`
 > remain in the template only to ease reverting the swap.

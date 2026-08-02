@@ -37,11 +37,15 @@ function parseGroup<T extends z.ZodTypeAny>(
 // consts. tsx scripts call dotenv.config() in their module body, which runs
 // AFTER these imports are evaluated (ESM hoisting) — a module-level const would
 // freeze to its default and silently ignore .env.local overrides.
-// Generation moved from Anthropic to OpenAI (see DEVIATIONS.md #4); the same
-// OPENAI_API_KEY powers both generation and embeddings.
-const genModel = () => process.env.OPENAI_GEN_MODEL?.trim() || "gpt-4.1";
-const embedModel = () => process.env.EMBEDDING_MODEL?.trim() || "text-embedding-3-small";
+// Generation moved Anthropic → OpenAI (DEVIATIONS.md #4) → Gemini via the
+// OpenAI-compatible endpoint (DEVIATIONS.md #8); the same GEMINI_API_KEY
+// powers both generation and embeddings.
+const genModel = () => process.env.GEMINI_GEN_MODEL?.trim() || "gemini-2.5-flash";
+const embedModel = () => process.env.EMBEDDING_MODEL?.trim() || "gemini-embedding-001";
 const embedDim = () => Number(process.env.EMBEDDING_DIM?.trim() || "1536");
+// Optional OpenAI-COMPATIBLE base URL (DEVIATIONS.md #8: Gemini via
+// https://generativelanguage.googleapis.com/v1beta/openai/). Blank = api.openai.com.
+const apiBaseUrl = () => process.env.GEMINI_BASE_URL?.trim() || undefined;
 
 // --- Lazy, grouped accessors -------------------------------------------------
 
@@ -71,13 +75,18 @@ export function requireSupabaseBrowser() {
   });
 }
 
-const generationSchema = z.object({ apiKey: nonEmpty, model: nonEmpty });
+const generationSchema = z.object({
+  apiKey: nonEmpty,
+  model: nonEmpty,
+  baseUrl: nonEmpty.url().optional(),
+});
 
-/** OpenAI config for all LLM generation. Throws if not configured. */
+/** OpenAI-compatible config for all LLM generation. Throws if not configured. */
 export function requireGeneration() {
-  return parseGroup("openai (generation)", generationSchema, {
-    apiKey: process.env.OPENAI_API_KEY,
+  return parseGroup("gemini (generation)", generationSchema, {
+    apiKey: process.env.GEMINI_API_KEY,
     model: genModel(),
+    baseUrl: apiBaseUrl(),
   });
 }
 
@@ -85,14 +94,16 @@ const embeddingsSchema = z.object({
   apiKey: nonEmpty,
   embeddingModel: nonEmpty,
   embeddingDim: z.number().int().positive(),
+  baseUrl: nonEmpty.url().optional(),
 });
 
-/** OpenAI config for embeddings. Same key as generation. Throws if not configured. */
+/** OpenAI-compatible config for embeddings. Same key as generation. Throws if not configured. */
 export function requireEmbeddings() {
-  return parseGroup("openai (embeddings)", embeddingsSchema, {
-    apiKey: process.env.OPENAI_API_KEY,
+  return parseGroup("gemini (embeddings)", embeddingsSchema, {
+    apiKey: process.env.GEMINI_API_KEY,
     embeddingModel: embedModel(),
     embeddingDim: embedDim(),
+    baseUrl: apiBaseUrl(),
   });
 }
 

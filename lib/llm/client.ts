@@ -9,9 +9,13 @@ import { requireGeneration } from "@/lib/config/env";
 let _client: OpenAI | null = null;
 
 export function generationClient(): { client: OpenAI; model: string } {
-  const { apiKey, model } = requireGeneration();
+  const { apiKey, model, baseUrl } = requireGeneration();
   // maxRetries: 0 so a 429 (e.g. daily-cap with a long Retry-After) surfaces
   // immediately instead of the SDK sleeping through the backoff and hanging.
-  if (!_client) _client = new OpenAI({ apiKey, maxRetries: 0, timeout: 60_000 });
+  // baseURL undefined = api.openai.com; set GEMINI_BASE_URL for any
+  // OpenAI-compatible vendor (currently Gemini — DEVIATIONS.md #8).
+  if (!_client) {
+    _client = new OpenAI({ apiKey, baseURL: baseUrl, maxRetries: 0, timeout: 60_000 });
+  }
   return { client: _client, model };
 }
