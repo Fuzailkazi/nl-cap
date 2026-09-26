@@ -1,0 +1,23 @@
+name: Keep Alive Supabase
+
+on:
+  schedule:
+    # Run every 2 days at 00:00 UTC to prevent Supabase free tier from pausing due to 7-day inactivity
+    - cron: '0 0 */2 * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping live API to keep database active
+        run: |
+          echo "Pinging production endpoint..."
+          response=$(curl -s -w "\n%{http_code}" https://nl-cap.vercel.app/api/reviews)
+          http_code=$(echo "$response" | tail -n1)
+          echo "HTTP status code: $http_code"
+          if [ "$http_code" -ne 200 ]; then
+            echo "Unexpected status: $http_code"
+            exit 1
+          fi
+          echo "Supabase successfully queried and kept warm."

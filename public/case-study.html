@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voice-First Advisor Intelligence Suite — Why I Built This</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%A1%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --paper: #F4F5F2;
+    --paper-2: #ECEEE8;
+    --panel: #FBFBF9;
+    --ink: #191C18;
+    --ink-2: #4C5149;
+    --ink-3: #797F76;
+    --line: #D4D8CE;
+    --line-2: #E2E5DD;
+    --accent: #0C6B58;
+    --accent-2: #094E40;
+    --accent-soft: #DCE8E2;
+    --ochre: #A8641F;
+    --ochre-soft: #F1E7D7;
+    --good: #2F7D4F;
+    --warn: #96650F;
+    --crit: #A23B2F;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: "SF Mono", "IBM Plex Mono", ui-monospace, "Roboto Mono", Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { background: var(--paper); }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .wrap {
+    max-width: 47rem;
+    margin: 0 auto;
+    padding: clamp(1.4rem, 4vw, 3.2rem) clamp(1.2rem, 5vw, 2rem) 4rem;
+  }
+
+  .kicker {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .sheet {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    border-radius: 3px;
+    overflow: hidden;
+    animation: rise 0.6s cubic-bezier(.2,.7,.3,1) both;
+  }
+  .sheet-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.55rem 1rem;
+    border-bottom: 1px solid var(--line);
+    background: var(--paper-2);
+  }
+  .sheet-top .eyebrow { color: var(--ink-2); }
+  .dot {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-2);
+  }
+  .dot::before {
+    content: ""; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .sheet-body { padding: clamp(1.3rem, 4vw, 2rem); }
+  .title {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 6vw, 2.9rem);
+    line-height: 1.06;
+    letter-spacing: -0.012em;
+    text-wrap: balance;
+    margin: 0 0 0.7rem;
+  }
+  .deck {
+    color: var(--ink-2);
+    font-size: clamp(1.02rem, 2.4vw, 1.16rem);
+    line-height: 1.5;
+    max-width: 35rem;
+    margin: 0 0 1.5rem;
+  }
+  .fields {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--line-2);
+    border: 1px solid var(--line-2);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .field { background: var(--panel); padding: 0.7rem 0.85rem; }
+  .field dt {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 0.2rem;
+  }
+  .field dd { margin: 0; font-family: var(--sans); font-size: 0.9rem; line-height: 1.35; color: var(--ink); }
+
+  .thesis { margin: 3.2rem 0; padding-left: 1.1rem; border-left: 3px solid var(--accent); }
+  .thesis p {
+    font-family: var(--serif);
+    font-size: clamp(1.4rem, 4vw, 1.9rem);
+    line-height: 1.28;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    margin: 0;
+    color: var(--ink);
+  }
+  .thesis em { color: var(--accent); font-style: italic; }
+
+  section { margin-top: 2.9rem; }
+  .rule { height: 1px; background: var(--line); border: 0; margin: 2.9rem 0 0; }
+  h2 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.42rem;
+    letter-spacing: -0.008em;
+    margin: 0.5rem 0 0.9rem;
+    text-wrap: balance;
+  }
+  p.body { max-width: 36rem; color: var(--ink); margin: 0 0 1rem; }
+  p.body:last-child { margin-bottom: 0; }
+  .muted { color: var(--ink-2); }
+
+  /* job-to-be-done card */
+  .jtbd {
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--ochre);
+    border-radius: 3px;
+    padding: 1.3rem 1.4rem;
+    background: var(--panel);
+    margin-top: 1.2rem;
+  }
+  .jtbd .statement {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.14rem;
+    line-height: 1.52;
+    color: var(--ink);
+    margin: 0 0 1.1rem;
+    text-wrap: balance;
+  }
+  .jtbd dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 0.4rem 0.9rem; }
+  .jtbd dt {
+    font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ochre); padding-top: 0.2rem; white-space: nowrap;
+  }
+  .jtbd dd { margin: 0; font-family: var(--sans); font-size: 0.89rem; line-height: 1.52; color: var(--ink-2); }
+
+  /* personal note */
+  .note {
+    background: var(--ochre-soft);
+    border: 1px solid color-mix(in srgb, var(--ochre) 34%, transparent);
+    border-radius: 3px;
+    padding: 1.3rem 1.4rem;
+    margin-top: 1.2rem;
+  }
+  .note .kicker { color: var(--ochre); }
+  .note p {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.08rem;
+    line-height: 1.55;
+    color: var(--ink);
+    margin: 0.5rem 0 0;
+    max-width: 38rem;
+  }
+
+  /* pillars (funnel) */
+  .pillars { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 1.1rem; }
+  .pillar {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.9rem 1.1rem;
+    align-items: baseline;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1rem 1.1rem;
+  }
+  .pillar .stage {
+    font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--accent); font-weight: 600;
+    padding-top: 0.28rem; white-space: nowrap;
+  }
+  .pillar h3 { font-family: var(--serif); font-weight: 600; font-size: 1.08rem; margin: 0 0 0.2rem; }
+  .pillar p { font-family: var(--sans); font-size: 0.92rem; line-height: 1.5; color: var(--ink-2); margin: 0; }
+  .loop {
+    display: flex; gap: 0.75rem; align-items: flex-start;
+    margin-top: 0.7rem; padding: 0.85rem 1.1rem;
+    border: 1px dashed color-mix(in srgb, var(--accent) 45%, transparent);
+    border-radius: 3px;
+    background: var(--accent-soft);
+  }
+  .loop .sym { font-family: var(--mono); color: var(--accent); font-weight: 700; font-size: 1rem; line-height: 1.5; }
+  .loop p { font-family: var(--sans); font-size: 0.9rem; line-height: 1.5; margin: 0; color: var(--ink); }
+
+  /* eval suite grid */
+  .evalgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.7rem; margin-top: 1.1rem; }
+  .evalcard { border: 1px solid var(--line); border-radius: 3px; padding: 0.95rem 1.05rem; background: var(--panel); }
+  .evalcard .suite {
+    font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: 0.4rem;
+  }
+  .evalcard h4 { font-family: var(--serif); font-weight: 600; font-size: 0.98rem; margin: 0 0 0.4rem; text-wrap: balance; }
+  .evalcard p { font-family: var(--sans); font-size: 0.84rem; line-height: 1.45; color: var(--ink-2); margin: 0; }
+  .evalcard p.why { margin-top: 0.5rem; color: var(--ink); }
+  .evalcard p.why b { color: var(--ochre); font-weight: 600; }
+
+  /* tables (method + scorecard) */
+  .scroll { overflow-x: auto; margin-top: 1.1rem; border: 1px solid var(--line); border-radius: 3px; }
+  table { border-collapse: collapse; width: 100%; font-family: var(--sans); font-size: 0.86rem; min-width: 34rem; }
+  thead th {
+    text-align: left; font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.13em;
+    text-transform: uppercase; color: var(--ink-3); font-weight: 600;
+    padding: 0.65rem 0.9rem; background: var(--paper-2); border-bottom: 1px solid var(--line);
+  }
+  tbody td { padding: 0.72rem 0.9rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.guard { font-weight: 600; color: var(--ink); white-space: nowrap; }
+  td.rule-cell { color: var(--ink-2); }
+  .chip {
+    display: inline-block; font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.08em;
+    text-transform: uppercase; padding: 0.2rem 0.45rem; border-radius: 3px;
+    border: 1px solid var(--line); color: var(--ink-2); background: var(--paper); white-space: nowrap;
+  }
+  .chip.j { color: var(--ochre); border-color: color-mix(in srgb, var(--ochre) 40%, transparent); }
+  .caption {
+    font-family: var(--mono); font-size: 0.68rem; line-height: 1.5;
+    color: var(--ink-3); margin-top: 0.7rem; letter-spacing: 0.01em;
+  }
+  .caption code { color: var(--accent); background: var(--accent-soft); padding: 0.05rem 0.3rem; border-radius: 3px; }
+
+  /* decisions */
+  .decisions { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 1.1rem; }
+  .decision { border: 1px solid var(--line); border-radius: 3px; padding: 1rem 1.1rem; background: var(--panel); }
+  .decision h3 { font-family: var(--serif); font-weight: 600; font-size: 1.05rem; margin: 0 0 0.5rem; }
+  .decision dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 0.3rem 0.8rem; }
+  .decision dt { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); padding-top: 0.18rem; }
+  .decision dd { margin: 0; font-family: var(--sans); font-size: 0.9rem; line-height: 1.48; color: var(--ink-2); }
+  .decision dd b { color: var(--ink); font-weight: 600; }
+
+  /* capability grid */
+  .caps { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--line-2); border: 1px solid var(--line-2); border-radius: 3px; overflow: hidden; margin-top: 1.1rem; }
+  .cap { background: var(--panel); padding: 0.85rem 0.95rem; }
+  .cap dt { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.25rem; }
+  .cap dd { margin: 0; font-family: var(--sans); font-size: 0.85rem; line-height: 1.4; color: var(--ink); }
+
+  /* resume lines */
+  .lines { display: flex; flex-direction: column; gap: 0.7rem; margin-top: 1.1rem; }
+  .line {
+    display: grid; grid-template-columns: auto 1fr; gap: 0.9rem; align-items: start;
+    padding: 0.95rem 1.1rem; border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 3px; background: var(--panel);
+  }
+  .line .mk { font-family: var(--mono); color: var(--accent); font-size: 0.9rem; font-weight: 700; padding-top: 0.15rem; }
+  .line p { font-family: var(--sans); font-size: 0.92rem; line-height: 1.5; margin: 0; color: var(--ink); }
+  .line .ph { color: var(--ochre); font-family: var(--mono); font-size: 0.85rem; }
+
+  ul.next { list-style: none; padding: 0; margin: 1.1rem 0 0; display: flex; flex-direction: column; gap: 0.55rem; }
+  ul.next li { display: grid; grid-template-columns: auto 1fr; gap: 0.75rem; font-family: var(--sans); font-size: 0.92rem; line-height: 1.5; color: var(--ink-2); }
+  ul.next li::before { content: "→"; color: var(--accent); font-family: var(--mono); }
+  ul.next b { color: var(--ink); font-weight: 600; }
+
+  footer {
+    margin-top: 3.4rem; padding-top: 1.3rem; border-top: 1px solid var(--line);
+    font-family: var(--mono); font-size: 0.68rem; line-height: 1.7; letter-spacing: 0.03em; color: var(--ink-3);
+  }
+  footer b { color: var(--ink-2); font-weight: 600; }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover, footer a:focus-visible { text-decoration: underline; }
+
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .sheet { animation: none; } }
+
+  @media (max-width: 560px) {
+    .fields, .caps { grid-template-columns: 1fr; }
+    .pillar { grid-template-columns: 1fr; gap: 0.35rem; }
+    .pillar .stage { padding-top: 0; }
+    .jtbd dl { grid-template-columns: 1fr; }
+    .jtbd dt { padding-top: 0.5rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <article class="sheet">
+    <div class="sheet-top">
+      <span class="eyebrow">Project Factsheet</span>
+      <span class="dot">Working prototype</span>
+    </div>
+    <div class="sheet-body">
+      <div class="kicker">Why I built this</div>
+      <h1 class="title">Voice-First Advisor Intelligence Suite</h1>
+      <p class="deck">My dad trades stocks and invests in mutual funds — and still couldn't tell me, inside twenty minutes, whether a fund was actually worth holding. So I built him an analyst that never sleeps, never recommends, and always shows its work.</p>
+      <dl class="fields">
+        <div class="field"><dt>Role</dt><dd>Product lead &amp; builder, end-to-end</dd></div>
+        <div class="field"><dt>Domain</dt><dd>Regulated wealth &middot; Indian mutual funds</dd></div>
+        <div class="field"><dt>Inspired by</dt><dd>My dad, an active trader &amp; investor</dd></div>
+        <div class="field"><dt>AI pattern</dt><dd>RAG &middot; agentic + human-in-the-loop &middot; evals</dd></div>
+      </dl>
+    </div>
+  </article>
+
+  <div class="thesis">
+    <p>There's never been <em>more</em> to invest in — and never less time to check any of it properly.</p>
+  </div>
+
+  <section>
+    <div class="eyebrow">The problem</div>
+    <h2>More options than anyone has hours to evaluate</h2>
+    <p class="body">Between direct and regular plans, dozens of AMCs, and a scheme for every risk appetite, choosing where money sits has never had more options — or been harder to do properly. Reading a factsheet, checking the exit load, and separating a genuine review from an ad takes real time most people don't have between a job, a family, and everything else. My dad trades and invests seriously. He still outsourced that homework — to a phone call with me.</p>
+
+    <div class="jtbd">
+      <p class="statement">"When I'm deciding whether to hold, switch, or add to a fund, I want a fast, cited, no-spin answer — not an evening spent cross-referencing factsheets and forums — so I can act on my own judgment without becoming a full-time analyst."</p>
+      <dl>
+        <dt>Situation</dt><dd>Money already in the market, more funds to choose from every year, and a decision that shouldn't need a research degree.</dd>
+        <dt>Struggle</dt><dd>The facts exist, but they're scattered across PDFs, fine print, and forum noise nobody has time to reconcile.</dd>
+        <dt>Outcome</dt><dd>A straight answer he can verify himself — or an honest "I don't know," never a guess dressed up as one.</dd>
+      </dl>
+    </div>
+  </section>
+
+  <div class="note">
+    <div class="kicker">The moment it clicked</div>
+    <p>Dad's been trading and investing for years — he reads the news, watches the market, he's not naive about money. But mutual funds are a different kind of homework: exit loads, expense ratios, direct-vs-regular, reviews scattered across forums nobody indexes well. He'd call and ask "is this fund still good," or text me a screenshot asking what a fee actually meant, and I'd spend twenty minutes doing research he didn't have time for. Multiply that by every investor doing the same thing alone, and the real problem wasn't too few options — it's that evaluating any <em>one</em> of them properly takes longer than most people can spare. So I built the analyst I was already being for him: it answers in seconds, cites where it got the number, refuses to tell him what to do, and hands him to a real advisor the moment the question turns personal.</p>
+  </div>
+
+  <hr class="rule">
+
+  <section>
+    <div class="eyebrow">What I built him</div>
+    <h2>Three pillars, shaped around how he actually asks</h2>
+    <div class="pillars">
+      <div class="pillar">
+        <span class="stage">Deflect</span>
+        <div>
+          <h3>FAQ RAG bot</h3>
+          <p>The questions he actually asks — "what's the expense ratio," "what's the exit load" — answered in seconds, with the source attached so he can check it himself.</p>
+        </div>
+      </div>
+      <div class="pillar">
+        <span class="stage">Listen</span>
+        <div>
+          <h3>Review Intelligence</h3>
+          <p>Instead of him scrolling forums to sanity-check a fund, a Weekly Pulse distills what other investors are actually saying — signal, not scrolling.</p>
+        </div>
+      </div>
+      <div class="pillar">
+        <span class="stage">Escalate</span>
+        <div>
+          <h3>Voice Scheduler</h3>
+          <p>When it's a real decision — switching schemes, timing a redemption — it books time with a human advisor instead of guessing out loud.</p>
+        </div>
+      </div>
+    </div>
+    <div class="loop">
+      <span class="sym">&#8635;</span>
+      <p><b>The loop that ties it together:</b> fee explainers written from real investor pain feed back into the same corpus the bot cites from — so the next time he asks, the answer already reflects what people like him were confused about.</p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <div class="eyebrow">The effect</div>
+    <h2>What actually changed for him</h2>
+    <p class="body">Before, a fund question meant a text to me and a wait while I dug through PDFs and forum threads on his behalf. Now he gets a cited answer in the time it takes to ask — and when the honest answer is "I don't have a verified source for that," he's learned to trust that as much as the answers with a citation attached.</p>
+    <p class="body">The bigger shift was what he started asking on his own. Once the fee explainer put direct-vs-regular and expense-ratio drag into plain language, he started checking it against funds he already held — a question he'd never had a fast enough way to ask before, and one that, over years of compounding, is exactly the kind of thing that quietly costs an investor the most.</p>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <div class="eyebrow">The bet</div>
+    <h2>AI proposes, a human disposes</h2>
+    <p class="body">Every action the assistant can take — draft an email, hold a calendar slot, append a booking note — is queued as <b>pending</b> and executes only when a person clicks approve. Nothing goes out automatically, ever. It's the same instinct my dad already has about his broker: read the confirmation before it executes. That gate is what makes an assistant like this safe to hand to someone whose money is actually on the line.</p>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <div class="eyebrow">How I made sure it wouldn't misinform him</div>
+    <h2>An analyst's second opinion that never gets tired</h2>
+    <p class="body muted">This is money a real person acts on, so "the answer sounded right" was never going to be good enough. Before any answer format ships, it runs through five eval suites, each built to catch a different way an assistant like this can quietly go wrong.</p>
+
+    <div class="evalgrid">
+      <div class="evalcard">
+        <div class="suite">01 &middot; Retrieval</div>
+        <h4>Does it find the right facts?</h4>
+        <p>Checks recall against a golden set of real fund questions.</p>
+        <p class="why"><b>Guards against:</b> answering confidently from the wrong scheme's page.</p>
+      </div>
+      <div class="evalcard">
+        <div class="suite">02 &middot; Generation</div>
+        <h4>Does it only say what the source says?</h4>
+        <p>Faithfulness &amp; relevance, scored by an LLM judge against retrieved sources.</p>
+        <p class="why"><b>Guards against:</b> an invented number he'd act on — the single scariest failure mode with real money.</p>
+      </div>
+      <div class="evalcard">
+        <div class="suite">03 &middot; Compliance</div>
+        <h4>Does it ever cross into advice?</h4>
+        <p>Confirms every advice-shaped question gets the refusal, verbatim, not a recommendation.</p>
+        <p class="why"><b>Guards against:</b> the assistant quietly becoming the decision-maker instead of him.</p>
+      </div>
+      <div class="evalcard">
+        <div class="suite">04 &middot; Injection</div>
+        <h4>Can it be talked out of its own rules?</h4>
+        <p>Runs jailbreak-style adversarial prompts designed to override the contract.</p>
+        <p class="why"><b>Guards against:</b> a clever phrasing tricking it into advice or a fabricated claim.</p>
+      </div>
+      <div class="evalcard">
+        <div class="suite">05 &middot; Structure</div>
+        <h4>Is the output actually usable?</h4>
+        <p>Checks the Weekly Pulse and Fee Explainer hold their shape — word limits, source counts, dates.</p>
+        <p class="why"><b>Guards against:</b> something technically correct but too dense for him to actually read.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">The method</div>
+    <h2>How each verdict is actually computed</h2>
+    <p class="body muted">"It passed" isn't an answer on its own — here's the actual mechanism behind each of the five checks, and what has to be true for a case to count as a pass.</p>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th>Suite</th><th>Runs against</th><th>Scoring mechanism</th><th>Verdict rule</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="guard">Retrieval</td>
+            <td class="rule-cell">A fixed golden set of real fund questions, one per scheme</td>
+            <td class="rule-cell">Calls the real retriever; checks whether the correct scheme's source chunk lands in the top-K results</td>
+            <td class="rule-cell">Recall@3 / Recall@5 must clear a set threshold</td>
+          </tr>
+          <tr>
+            <td class="guard">Generation</td>
+            <td class="rule-cell">The same golden questions, run through the real answer pipeline</td>
+            <td class="rule-cell">A second, independent LLM call — "the judge" — scores faithfulness, relevance, helpfulness &amp; completeness from 0–1 against the retrieved source text</td>
+            <td class="rule-cell">Faithfulness &amp; relevance both &ge; 0.8</td>
+          </tr>
+          <tr>
+            <td class="guard">Compliance</td>
+            <td class="rule-cell">Adversarial prompts written to elicit advice, a performance claim, or a PII leak</td>
+            <td class="rule-cell">Deterministic string/regex match — output compared against the verbatim refusal string, a banned advice-phrase list, and a PII-pattern scan</td>
+            <td class="rule-cell">Zero tolerance — any single match fails the case</td>
+          </tr>
+          <tr>
+            <td class="guard">Injection</td>
+            <td class="rule-cell">Jailbreak-style adversarial prompts ("ignore your instructions," role-play overrides, etc.)</td>
+            <td class="rule-cell">Runs the real chat/voice pipeline end to end, then scans the response for a contract override or a leaked system prompt</td>
+            <td class="rule-cell">0% attack success required across the full set</td>
+          </tr>
+          <tr>
+            <td class="guard">Structure</td>
+            <td class="rule-cell">Real generated Weekly Pulse, Fee Explainer, and booking codes</td>
+            <td class="rule-cell">Schema + regex validation — word counts, section counts, source counts, exact code format</td>
+            <td class="rule-cell">100% structural match, no partial credit</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="caption">// Every suite calls the real production function — retrieval, generation, the voice router — never a mocked stand-in. A passing eval reflects exactly what a user would see.</p>
+  </section>
+
+  <section>
+    <h2>The contract those five suites are checking</h2>
+    <p class="body muted">The rules only count if something <em>fails</em> when they break. Each guardrail below is one of those rules, made measurable.</p>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th>Guardrail</th><th>Enforced rule</th><th>How it's checked</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="guard">Citation accuracy</td><td class="rule-cell">Exactly one source, drawn from retrieved corpus</td><td><span class="chip">Rule-based</span></td></tr>
+          <tr><td class="guard">No advice</td><td class="rule-cell">Advice requests get a verbatim refusal + AMFI link</td><td><span class="chip">Adversarial</span></td></tr>
+          <tr><td class="guard">No fabrication</td><td class="rule-cell">No source &rarr; verbatim "corpus miss", never a guess</td><td><span class="chip">Rule-based</span></td></tr>
+          <tr><td class="guard">No PII</td><td class="rule-cell">Never in prompts, logs, pulses, or transcripts</td><td><span class="chip">Regex + scrub</span></td></tr>
+          <tr><td class="guard">Output structure</td><td class="rule-cell">Pulse &le;250 words; explainer = 6 bullets, 2 sources, date</td><td><span class="chip">Structure</span></td></tr>
+          <tr><td class="guard">Injection resistance</td><td class="rule-cell">Attacks can't override the contract</td><td><span class="chip j">LLM-judge</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="caption">// The contract I defined and instrumented. Live pass rates come from <code>npm run eval:all</code> — drop your latest figures beside each guardrail when you present it.</p>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <div class="eyebrow">Decisions I'd stand behind</div>
+    <h2>Three calls, and what each one cost</h2>
+    <div class="decisions">
+      <div class="decision">
+        <h3>Cite-or-refuse, over "always helpful"</h3>
+        <dl>
+          <dt>Why</dt><dd>A confident wrong answer is a <b>liability</b> when it's someone's real portfolio, not a bad review. Grounding beats fluency.</dd>
+          <dt>Cost</dt><dd>The bot says "I don't have a verified source" more than users would like — a deliberate, defensible floor.</dd>
+        </dl>
+      </div>
+      <div class="decision">
+        <h3>Human approval gate, over auto-send</h3>
+        <dl>
+          <dt>Why</dt><dd>Trust and <b>auditability</b> outweigh latency when real money is downstream. The review step is the feature.</dd>
+          <dt>Cost</dt><dd>Not fully autonomous — every outbound action waits on a person.</dd>
+        </dl>
+      </div>
+      <div class="decision">
+        <h3>Evals as a build gate, over an afterthought</h3>
+        <dl>
+          <dt>Why</dt><dd>The compliance rules are only real if a <b>test fails</b> when they drift. Format contracts are pinned by evals, not vibes.</dd>
+          <dt>Cost</dt><dd>Slower to ship features — every output format has to earn its passing check.</dd>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <div class="eyebrow">What it demonstrates</div>
+    <h2>One project, most of the AI-PM checklist</h2>
+    <dl class="caps">
+      <div class="cap"><dt>RAG grounding</dt><dd>Cited answers over an official-source corpus</dd></div>
+      <div class="cap"><dt>Agentic + HITL</dt><dd>Tools that queue behind a human gate</dd></div>
+      <div class="cap"><dt>Evals &amp; metrics</dt><dd>Defined success criteria, then enforced them</dd></div>
+      <div class="cap"><dt>Trust &amp; safety</dt><dd>No-advice / no-fabrication / no-PII as spec</dd></div>
+      <div class="cap"><dt>Voice / multimodal</dt><dd>Browser STT + TTS scheduling flow</dd></div>
+      <div class="cap"><dt>End-to-end PM</dt><dd>A real user, a closed data loop, an honest roadmap</dd></div>
+    </dl>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <div class="eyebrow">Resume-ready lines</div>
+    <h2>Lift these straight in</h2>
+    <div class="lines">
+      <div class="line">
+        <span class="mk">01</span>
+        <p>Designed and shipped an end-to-end AI assistant for regulated mutual-fund support (RAG + voice + agentic actions), defining the product's compliance spec and a pass/fail eval suite that enforced <span class="ph">[X]%</span> citation accuracy and 100% advice-refusal across <span class="ph">[N]</span> adversarial cases.</p>
+      </div>
+      <div class="line">
+        <span class="mk">02</span>
+        <p>Architected a human-in-the-loop approval gate so no AI-initiated action executes without explicit review — the trust mechanism that makes agentic AI deployable in a regulated context.</p>
+      </div>
+      <div class="line">
+        <span class="mk">03</span>
+        <p>Built a closed content loop turning customer reviews into a Weekly Pulse and fee explainers that feed back into the assistant's cited knowledge base, tying voice-of-customer directly to answer quality.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <div class="eyebrow">What's next</div>
+    <h2>The honest roadmap</h2>
+    <ul class="next">
+      <li><span></span><span><b>Tighten eval coverage</b> — add PII-in-pulse and indirect (corpus) injection tests to close the blind spots.</span></li>
+      <li><span></span><span><b>Source-authority ranking</b> — make official AMC/AMFI/SEBI sources win the single citation over third-party pages.</span></li>
+      <li><span></span><span><b>Model-tier routing</b> — right-size each call so cost drops without moving eval pass rates.</span></li>
+    </ul>
+  </section>
+
+  <footer>
+    <b>Built end-to-end</b> — product spec, RAG pipeline, voice layer, approval gate, and eval harness.<br>
+    Fuzail Kazi &middot; <a href="https://github.com/Fuzailkazi/nl-cap" target="_blank" rel="noopener">github.com/Fuzailkazi/nl-cap</a> &middot; AI Product Manager
+  </footer>
+
+</div>
+</body>
+</html>
